@@ -49,7 +49,8 @@
     /* ゲームキャンバス */
     canvas {
       display: none; position: absolute; z-index: 1;
-      width: 100%; height: 100%; max-width: 100vw; max-height: 100vh;
+      width: 100%; height: 100%; 
+      max-width: 100vw; max-height: 100vh;
       object-fit: contain; background: #111;
     }
   </style>
@@ -107,11 +108,11 @@
         <button class="btn btn-secondary" onclick="cancelLbPay()"><span data-i18n="btn_cancel">CANCEL</span></button>
       </div>
 
-      <!-- 名前入力 -->
+      <!-- 名前入力 (文字数制限を30文字に修正！) -->
       <div id="lb-name-area" style="display:none;">
         <div class="title" style="font-size: 1rem; color:#00FF88;" data-i18n="payment_success">SUCCESS!</div>
         <p style="font-size: 10px;" data-i18n="enter_name">Enter your name:</p>
-        <input type="text" id="player-name" maxlength="15" style="width:85%; padding:10px; font-family:'Press Start 2P'; font-size:10px; margin-bottom:15px; text-align:center; border: 2px solid var(--primary); background:#111; color:#fff;">
+        <input type="text" id="player-name" maxlength="30" placeholder="Satoshi Nakamoto" style="width:85%; padding:10px; font-family:'Press Start 2P', monospace; font-size:10px; margin-bottom:15px; text-align:center; border: 2px solid var(--primary); background:#111; color:#fff;">
         <button class="btn btn-gold" onclick="submitScore()"><span data-i18n="btn_submit">SUBMIT</span></button>
       </div>
     </div>
@@ -135,16 +136,6 @@ const GAS_URL = "https://script.google.com/macros/s/AKfycbwYOUR_GAS_URL_HERE/exe
 const LNBITS_API_URL = "https://demo.lnbits.com/api/v1/payments";
 const LNBITS_INVOICE_KEY = "67e5b0ad270f44d19e6d768bb3314e49"; 
 
-// ==========================================
-// 🐦 Xシェア用ミームGIFランダムリスト
-// ==========================================
-const shareGifs =[
-  "https://media.giphy.com/media/trN9ht5RlE3Dcwavg2/giphy.gif", // Satoshi Nakamoto
-  "https://media.giphy.com/media/7FBY7h5Psqd20/giphy.gif", // Genesis Block
-  "https://media.giphy.com/media/5efT8LI3xGIG4/giphy.gif", // Cyber Hornets
-  "https://media.giphy.com/media/xT0xeJpnrWC4XWblOU/giphy.gif" // HODL
-];
-
 // 多言語辞書
 const i18n = {
   en: {
@@ -153,8 +144,7 @@ const i18n = {
     btn_play_free: "PLAY FREE", gameover: "GAME OVER", btn_share: "🐦 SHARE TO X", btn_retry_free: "RETRY FREE",
     btn_leaderboard: "🏆 SAVE SCORE (100 SATS)", btn_view_lb: "📋 VIEW LEADERBOARD",
     pay_to_record: "PAY TO RECORD", waiting: "WAITING FOR PAYMENT...", btn_cancel: "CANCEL", btn_close: "CLOSE",
-    payment_success: "SUCCESS!", enter_name: "Enter your name (Max 15):", btn_submit: "SUBMIT SCORE", alert_copy: "Copied!",
-    share_text: "I survived for {time} and scored {score} points in BITCOIN RUN! 🏃‍♂️⚡️\nI'm dodging FED, SCAM coins & CBDC UFOs!\nCan you beat my score? 👇\n#Bitcoin #LightningNetwork"
+    payment_success: "SUCCESS!", enter_name: "Enter your name (Max 30):", btn_submit: "SUBMIT SCORE", alert_copy: "Copied!"
   },
   ja: {
     desc: "縦でも横でもOK！<br>ヴィランを華麗にかわし、無限のハイスコアを叩き出せ！",
@@ -162,8 +152,7 @@ const i18n = {
     btn_play_free: "無料でプレイ", gameover: "ゲームオーバー", btn_share: "🐦 𝕏でシェア", btn_retry_free: "もう一度プレイ",
     btn_leaderboard: "🏆 スコアを記録 (100 SATS)", btn_view_lb: "📋 ランキングを見る",
     pay_to_record: "100 Satsのお賽銭", waiting: "支払いを確認中...", btn_cancel: "キャンセル", btn_close: "閉じる",
-    payment_success: "支払い完了！", enter_name: "名前を入力してください:", btn_submit: "記録する", alert_copy: "コピーしました！",
-    share_text: "BITCOIN RUNで【{time}】生き残り、スコア【{score}】を叩き出したよ！🏃‍♂️⚡️\n中央銀行やSCAMコイン、CBDCのUFOを避けまくれ！🛸\n君は僕を超えられるか？👇\n#Bitcoin #LightningNetwork"
+    payment_success: "支払い完了！", enter_name: "名前を入力してください:", btn_submit: "記録する", alert_copy: "コピーしました！"
   },
   ko: {
     desc: "세로/가로 모두 가능!<br>악당을 피하고 무한 최고 점수에 도전하세요!",
@@ -171,8 +160,7 @@ const i18n = {
     btn_play_free: "무료로 플레이", gameover: "게임 오버", btn_share: "🐦 𝕏에 공유하기", btn_retry_free: "다시 플레이",
     btn_leaderboard: "🏆 점수 기록 (100 SATS)", btn_view_lb: "📋 랭킹 보기",
     pay_to_record: "결제하여 기록하기", waiting: "결제 대기 중...", btn_cancel: "취소", btn_close: "닫기",
-    payment_success: "결제 완료!", enter_name: "이름을 입력하세요:", btn_submit: "등록하기", alert_copy: "복사되었습니다!",
-    share_text: "BITCOIN RUN에서 【{time}】 동안 살아남아 【{score}】 점을 기록했습니다! 🏃‍♂️⚡️\n은행, 스캠 코인, CBDC UFO를 피해 달리세요! 🛸\n저를 뛰어넘을 수 있나요? 👇\n#Bitcoin #LightningNetwork"
+    payment_success: "결제 완료!", enter_name: "이름을 입력하세요:", btn_submit: "등록하기", alert_copy: "복사되었습니다!"
   }
 };
 
@@ -225,6 +213,7 @@ function pollPayment(hash) {
 function copyLbInvoice() { document.getElementById('lb-inv-text').select(); document.execCommand('copy'); alert(i18n[currentLang].alert_copy); }
 function cancelLbPay() { if(checkPaymentInterval) clearInterval(checkPaymentInterval); document.getElementById('lb-invoice-area').style.display = 'none'; document.getElementById('result-buttons').style.display = 'block'; }
 
+// 🚨 修正ポイント：CORSエラーを防ぐために redirect: 'follow' を追加し、エラーをキャッチ
 function submitScore() {
   const name = document.getElementById('player-name').value.trim() || 'Anon';
   const timeStr = document.getElementById('final-time').innerText;
@@ -232,31 +221,54 @@ function submitScore() {
   const btn = document.querySelector('#lb-name-area button');
   btn.disabled = true; btn.innerText = "SAVING...";
 
-  fetch(`${GAS_URL}?action=record&name=${encodeURIComponent(name)}&score=${finalScore}&timeStr=${encodeURIComponent(timeStr)}`)
-  .then(res => res.json()).then(data => {
-    document.getElementById('lb-name-area').style.display = 'none'; document.getElementById('result-buttons').style.display = 'block';
-    btn.disabled = false; btn.innerHTML = `<span data-i18n="btn_submit">${i18n[currentLang].btn_submit}</span>`;
-    showLeaderboard();
-  }).catch(e => { alert("Error saving score"); btn.disabled = false; btn.innerHTML = `<span data-i18n="btn_submit">${i18n[currentLang].btn_submit}</span>`; });
+  fetch(`${GAS_URL}?action=record&name=${encodeURIComponent(name)}&score=${finalScore}&timeStr=${encodeURIComponent(timeStr)}`, { redirect: 'follow' })
+  .then(res => {
+    if (!res.ok) throw new Error("Network Error");
+    return res.text(); // GASがHTMLエラーを返した時のためにTextで受け取る
+  })
+  .then(text => {
+    try {
+      const data = JSON.parse(text);
+      if(data.error) throw new Error(data.error);
+      document.getElementById('lb-name-area').style.display = 'none'; 
+      document.getElementById('result-buttons').style.display = 'block';
+      btn.disabled = false; btn.innerHTML = `<span data-i18n="btn_submit">${i18n[currentLang].btn_submit}</span>`;
+      showLeaderboard();
+    } catch(e) {
+      throw new Error("JSON Parse Error: Make sure GAS is deployed to 'Anyone'");
+    }
+  })
+  .catch(e => { 
+    alert("Error saving score.\nGASのデプロイ設定(アクセスできるユーザー: 全員)になっているか確認してください！"); 
+    btn.disabled = false; btn.innerHTML = `<span data-i18n="btn_submit">${i18n[currentLang].btn_submit}</span>`; 
+  });
 }
 
 function showLeaderboard() {
   document.getElementById('panel-result').style.display = 'none'; document.getElementById('panel-start').style.display = 'none'; document.getElementById('panel-leaderboard').style.display = 'block';
   document.getElementById('lb-list').innerHTML = "Loading...";
-  fetch(`${GAS_URL}?action=get`).then(res => res.json()).then(data => {
-    let html = "";
-    if (data.length === 0) { html = "No records yet. Be the first!"; } 
-    else {
-      data.forEach((row, i) => {
-        let rank = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}.`;
-        html += `<div style="display:flex; justify-content:space-between; border-bottom:1px dashed #555; padding:8px 0;">
-          <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:40%; color:#F7931A;">${rank} ${row.name}</span>
-          <span style="color:#FFF;">${row.score} <span style="color:#aaa; font-size:8px;">[${row.timeStr}]</span></span>
-        </div>`;
-      });
+  
+  fetch(`${GAS_URL}?action=get`, { redirect: 'follow' })
+  .then(res => res.text())
+  .then(text => {
+    try {
+      const data = JSON.parse(text);
+      let html = "";
+      if (data.length === 0) { html = "No records yet. Be the first!"; } 
+      else {
+        data.forEach((row, i) => {
+          let rank = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}.`;
+          html += `<div style="display:flex; justify-content:space-between; border-bottom:1px dashed #555; padding:8px 0;">
+            <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:40%; color:#F7931A;">${rank} ${row.name}</span>
+            <span style="color:#FFF;">${row.score} <span style="color:#aaa; font-size:8px;">[${row.timeStr}]</span></span>
+          </div>`;
+        });
+      }
+      document.getElementById('lb-list').innerHTML = html;
+    } catch(e) {
+      document.getElementById('lb-list').innerHTML = "Error loading leaderboard.<br>GASのアクセス権限を確認してください。"; 
     }
-    document.getElementById('lb-list').innerHTML = html;
-  }).catch(e => { document.getElementById('lb-list').innerHTML = "Error loading leaderboard."; });
+  }).catch(e => { document.getElementById('lb-list').innerHTML = "Network Error."; });
 }
 
 function closeLeaderboard() {
@@ -266,18 +278,8 @@ function closeLeaderboard() {
 }
 
 function shareTwitter() {
-  const timeStr = document.getElementById('final-time').innerText;
-  const finalScore = Math.floor(score);
-  // 多言語ディクショナリからテキストを取得して置換
-  let text = i18n[currentLang].share_text.replace('{time}', timeStr).replace('{score}', finalScore);
-  
-  // ランダムなミームGIFを添付
-  const randomGif = shareGifs[Math.floor(Math.random() * shareGifs.length)];
-  const appUrl = window.location.href.split('?')[0]; // クエリを除外したクリーンなURL
-  
-  // テキストとGIF URLを結合
-  const tweetContent = text + "\n\n" + randomGif;
-  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetContent)}&url=${encodeURIComponent(appUrl)}`, '_blank');
+  const text = `I survived for ${document.getElementById('final-time').innerText} and scored ${Math.floor(score)} points in BITCOIN RUN! 🏃‍♂️⚡️\nDodge the villains and stack Sats!\n#Bitcoin #LightningNetwork`;
+  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
 }
 
 // ----------------------------------------------------
@@ -297,8 +299,7 @@ function startGame() {
   document.getElementById('panel-leaderboard').style.display = 'none';
   canvas.style.display = 'block';
   
-  // 🚨 ジャンプを「さらにふんわり」マイルドに調整
-  player = { x: 80, y: groundY - 20, r: 18, vy: 0, gravity: 0.5, jump: -8.5, jumpCount: 0, maxJumps: 3 };
+  player = { x: 80, y: groundY - 20, r: 18, vy: 0, gravity: 0.6, jump: -10, jumpCount: 0, maxJumps: 3 };
   obstacles =[]; items =[];
   
   bgElements = { clouds:[], mountains:[], trees:[] };
@@ -306,8 +307,7 @@ function startGame() {
   for(let i=0; i<3; i++) bgElements.mountains.push({x: i*300, y: groundY, w: 150 + Math.random()*100, h: 100 + Math.random()*80});
   for(let i=0; i<4; i++) bgElements.trees.push({x: i*250, y: groundY});
 
-  // 🚨 スピードを大幅に低下 (誰でも遊べるスピードに)
-  gameSpeed = 3.2; 
+  gameSpeed = 4.5; 
   score = 0; frame = 0; isGameOver = false;
 
   if(reqId) cancelAnimationFrame(reqId);
@@ -354,8 +354,7 @@ function updateGame() {
   if (player.y - player.r > canvas.height) { gameOver(); return; }
 
   frame++;
-  // 🚨 スピード低下に合わせて敵の出現間隔も余裕をもたせる
-  let spawnRate = Math.max(80, 180 - Math.floor(gameSpeed * 10)); 
+  let spawnRate = Math.max(60, 150 - Math.floor(gameSpeed * 10)); 
   
   if (frame % spawnRate === 0) {
     if (Math.random() < 0.2) {
@@ -379,7 +378,7 @@ function updateGame() {
     }
   }
 
-  if (frame % 110 === 0) items.push({ x: canvas.width, y: groundY - 80 - Math.random() * 150, r: 15 });
+  if (frame % 90 === 0) items.push({ x: canvas.width, y: groundY - 80 - Math.random() * 150, r: 15 });
 
   bgElements.clouds.forEach(c => { c.x -= gameSpeed * 0.2; if(c.x + c.w < 0) { c.x = canvas.width + Math.random()*100; c.y = 50 + Math.random()*(canvas.height/3); } });
   bgElements.mountains.forEach(m => { m.x -= gameSpeed * 0.1; if(m.x + m.w < -100) m.x = canvas.width + Math.random()*200; });
@@ -412,8 +411,7 @@ function updateGame() {
   items = items.filter(i => i.x + i.r > 0);
 
   score += 0.1; 
-  // 🚨 スピードアップも非常に緩やかに
-  gameSpeed = 3.2 + (frame / 1800); 
+  gameSpeed = 4.5 + (frame / 1500); 
   
   drawGame();
   reqId = requestAnimationFrame(updateGame);

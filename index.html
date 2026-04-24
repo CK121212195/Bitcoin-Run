@@ -5,6 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>🏃‍♂️ BITCOIN RUN ⚡️</title>
   
+  <!-- 🚨 追加: OGP (XやDiscordで大きな画像付きでシェアされる設定) -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://ck121212195.github.io/birio/">
+  <meta property="og:site_name" content="BITCOIN RUN ⚡️">
+  <meta property="og:title" content="BITCOIN RUN - 避けろFIAT！掴めSats！">
+  <meta property="og:description" content="縦でも横でも遊べる横スクロールアクション！Fiatモンスターを避けて無限のハイスコアを叩き出せ！">
+  <meta property="og:image" content="https://ck121212195.github.io/birio/og-image.jpg"> <!-- 共有用画像のURLを指定 -->
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!-- 🚨 追加: ファビコン設定 -->
+  <link rel="icon" type="image/png" href="favicon.png" sizes="32x32">
+  <link rel="icon" type="image/png" href="favicon.png" sizes="192x192">
+  <link rel="apple-touch-icon" sizes="180x180" href="favicon.png">
+
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+JP:wght@700&display=swap" rel="stylesheet">
   
   <style>
@@ -23,7 +37,6 @@
     .lang-selector { position: absolute; top: 10px; right: 10px; z-index: 100; }
     select.lang-select { background: #000; color: #fff; border: 1px solid var(--primary); padding: 5px 10px; border-radius: 5px; font-family: 'Press Start 2P', cursive; font-size: 8px; cursor: pointer; }
 
-    /* UIパネル */
     .panel {
       background: rgba(0, 0, 0, 0.85); border: 3px solid var(--primary); border-radius: 12px;
       padding: 20px 15px; text-align: center; box-shadow: 0 0 20px rgba(247, 147, 26, 0.5);
@@ -46,7 +59,6 @@
     .qr-img { width: 160px; height: 160px; border: 4px solid #fff; border-radius: 8px; margin: 5px auto; display: block; }
     .inv-text { width: 100%; padding: 8px; background: #000; color: #00FF88; border: 1px solid #333; border-radius: 5px; font-family: monospace; font-size: 10px; margin-bottom: 10px; word-break: break-all; resize: none; }
 
-    /* ゲームキャンバス */
     canvas {
       display: none; position: absolute; z-index: 1;
       width: 100%; height: 100%; 
@@ -59,7 +71,6 @@
 
   <div id="app-container">
     
-    <!-- トップ画面 -->
     <div class="panel" id="panel-start">
       <div class="lang-selector">
         <select class="lang-select" onchange="changeLang(this.value)">
@@ -68,9 +79,8 @@
       </div>
 
       <div class="title" style="margin-top: 15px;">BITCOIN<br>RUN 🏃‍♂️</div>
-      <div class="desc" data-i18n="desc">縦でも横でもOK！<br>ヴィランを華麗にかわし、無限のハイスコアを叩き出せ！</div>
+      <div class="desc" data-i18n="desc">縦でも横でもOK！<br>Fiatモンスターたちを華麗にかわし、無限のハイスコアを叩き出せ！</div>
       
-      <!-- HOW TO PLAY -->
       <div style="background: rgba(0,0,0,0.5); padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: left; font-size: 9px; line-height: 1.8; color: #ddd; border: 1px solid #333;">
         <div style="color:var(--primary); font-weight:bold; margin-bottom: 5px; text-align:center;" data-i18n="howto_title">📖 HOW TO PLAY</div>
         <div data-i18n="howto_1">👆 画面タップ/クリックでジャンプ</div>
@@ -83,10 +93,8 @@
       <button class="btn btn-secondary" onclick="showLeaderboard()" style="padding:10px;"><span data-i18n="btn_view_lb">📋 VIEW LEADERBOARD</span></button>
     </div>
 
-    <!-- ゲーム画面 -->
     <canvas id="gameCanvas"></canvas>
 
-    <!-- 結果画面 -->
     <div class="panel" id="panel-result" style="display:none;">
       <div class="title" style="color:#FFF;" data-i18n="gameover">GAME OVER</div>
       <div style="font-size:12px; color:#aaa; margin-bottom:5px; font-family: 'Press Start 2P', cursive;">TIME: <span id="final-time" style="color:#fff;">00:00</span></div>
@@ -99,7 +107,6 @@
         <button class="btn btn-secondary" onclick="showLeaderboard()" style="padding:10px;"><span data-i18n="btn_view_lb">📋 VIEW LEADERBOARD</span></button>
       </div>
 
-      <!-- 課金インボイス -->
       <div id="lb-invoice-area" style="display:none;">
         <div class="title" style="font-size: 1rem;" data-i18n="pay_to_record">PAY TO RECORD</div>
         <a id="lb-wallet-link" href="#"><img id="lb-qr" class="qr-img" src=""></a>
@@ -108,7 +115,6 @@
         <button class="btn btn-secondary" onclick="cancelLbPay()"><span data-i18n="btn_cancel">CANCEL</span></button>
       </div>
 
-      <!-- 名前入力 (文字数制限を30文字に修正！) -->
       <div id="lb-name-area" style="display:none;">
         <div class="title" style="font-size: 1rem; color:#00FF88;" data-i18n="payment_success">SUCCESS!</div>
         <p style="font-size: 10px;" data-i18n="enter_name">Enter your name:</p>
@@ -117,7 +123,6 @@
       </div>
     </div>
 
-    <!-- リーダーボード画面 -->
     <div class="panel" id="panel-leaderboard" style="display:none;">
       <div class="title">🏆 TOP 10 🏆</div>
       <div id="lb-list" style="text-align: left; font-size: 10px; line-height: 2; margin-bottom: 20px; font-family:'Press Start 2P', cursive;">
@@ -130,11 +135,17 @@
 
 <script>
 // ==========================================
-// 🚨 設定 (GASのURLを貼り付けてください)
+// 🚨 設定 (必ず /exec で終わるURLにしてください！)
 // ==========================================
-const GAS_URL = "https://script.google.com/macros/s/AKfycbwYOUR_GAS_URL_HERE/exec"; 
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzMnKAqkIJCYjumI_Z3eosxTYwwHA8jo0u_Au6YV-aFXhvrxkjJ48l0JrVNg-5qG4xz/exec"; 
 const LNBITS_API_URL = "https://demo.lnbits.com/api/v1/payments";
 const LNBITS_INVOICE_KEY = "67e5b0ad270f44d19e6d768bb3314e49"; 
+
+const shareGifs =[
+  "https://media.giphy.com/media/trN9ht5RlE3Dcwavg2/giphy.gif",
+  "https://media.giphy.com/media/7FBY7h5Psqd20/giphy.gif",
+  "https://media.giphy.com/media/5efT8LI3xGIG4/giphy.gif"
+];
 
 // 多言語辞書
 const i18n = {
@@ -144,7 +155,8 @@ const i18n = {
     btn_play_free: "PLAY FREE", gameover: "GAME OVER", btn_share: "🐦 SHARE TO X", btn_retry_free: "RETRY FREE",
     btn_leaderboard: "🏆 SAVE SCORE (100 SATS)", btn_view_lb: "📋 VIEW LEADERBOARD",
     pay_to_record: "PAY TO RECORD", waiting: "WAITING FOR PAYMENT...", btn_cancel: "CANCEL", btn_close: "CLOSE",
-    payment_success: "SUCCESS!", enter_name: "Enter your name (Max 30):", btn_submit: "SUBMIT SCORE", alert_copy: "Copied!"
+    payment_success: "SUCCESS!", enter_name: "Enter your name (Max 30):", btn_submit: "SUBMIT SCORE", alert_copy: "Copied!",
+    share_text: "I survived for {time} and scored {score} points in BITCOIN RUN! 🏃‍♂️⚡️\nI'm dodging FED, SCAM coins & CBDC UFOs!\nCan you beat my score? 👇\n#Bitcoin #LightningNetwork"
   },
   ja: {
     desc: "縦でも横でもOK！<br>ヴィランを華麗にかわし、無限のハイスコアを叩き出せ！",
@@ -152,7 +164,8 @@ const i18n = {
     btn_play_free: "無料でプレイ", gameover: "ゲームオーバー", btn_share: "🐦 𝕏でシェア", btn_retry_free: "もう一度プレイ",
     btn_leaderboard: "🏆 スコアを記録 (100 SATS)", btn_view_lb: "📋 ランキングを見る",
     pay_to_record: "100 Satsのお賽銭", waiting: "支払いを確認中...", btn_cancel: "キャンセル", btn_close: "閉じる",
-    payment_success: "支払い完了！", enter_name: "名前を入力してください:", btn_submit: "記録する", alert_copy: "コピーしました！"
+    payment_success: "支払い完了！", enter_name: "名前を入力してください:", btn_submit: "記録する", alert_copy: "コピーしました！",
+    share_text: "BITCOIN RUNで【{time}】生き残り、スコア【{score}】を叩き出したよ！🏃‍♂️⚡️\n中央銀行やSCAMコイン、CBDCのUFOを避けまくれ！🛸\n君は僕を超えられるか？👇\n#Bitcoin #LightningNetwork"
   },
   ko: {
     desc: "세로/가로 모두 가능!<br>악당을 피하고 무한 최고 점수에 도전하세요!",
@@ -160,7 +173,8 @@ const i18n = {
     btn_play_free: "무료로 플레이", gameover: "게임 오버", btn_share: "🐦 𝕏에 공유하기", btn_retry_free: "다시 플레이",
     btn_leaderboard: "🏆 점수 기록 (100 SATS)", btn_view_lb: "📋 랭킹 보기",
     pay_to_record: "결제하여 기록하기", waiting: "결제 대기 중...", btn_cancel: "취소", btn_close: "닫기",
-    payment_success: "결제 완료!", enter_name: "이름을 입력하세요:", btn_submit: "등록하기", alert_copy: "복사되었습니다!"
+    payment_success: "결제 완료!", enter_name: "이름을 입력하세요:", btn_submit: "등록하기", alert_copy: "복사되었습니다!",
+    share_text: "BITCOIN RUN에서 【{time}】 동안 살아남아 【{score}】 점을 기록했습니다! 🏃‍♂️⚡️\n은행, 스캠 코인, CBDC UFO를 피해 달리세요! 🛸\n저를 뛰어넘을 수 있나요? 👇\n#Bitcoin #LightningNetwork"
   }
 };
 
@@ -213,7 +227,7 @@ function pollPayment(hash) {
 function copyLbInvoice() { document.getElementById('lb-inv-text').select(); document.execCommand('copy'); alert(i18n[currentLang].alert_copy); }
 function cancelLbPay() { if(checkPaymentInterval) clearInterval(checkPaymentInterval); document.getElementById('lb-invoice-area').style.display = 'none'; document.getElementById('result-buttons').style.display = 'block'; }
 
-// 🚨 修正ポイント：CORSエラーを防ぐために redirect: 'follow' を追加し、エラーをキャッチ
+// 🚨 修正: 最強のCORS回避手段「JSONP」通信でGASに送信する
 function submitScore() {
   const name = document.getElementById('player-name').value.trim() || 'Anon';
   const timeStr = document.getElementById('final-time').innerText;
@@ -221,54 +235,58 @@ function submitScore() {
   const btn = document.querySelector('#lb-name-area button');
   btn.disabled = true; btn.innerText = "SAVING...";
 
-  fetch(`${GAS_URL}?action=record&name=${encodeURIComponent(name)}&score=${finalScore}&timeStr=${encodeURIComponent(timeStr)}`, { redirect: 'follow' })
-  .then(res => {
-    if (!res.ok) throw new Error("Network Error");
-    return res.text(); // GASがHTMLエラーを返した時のためにTextで受け取る
-  })
-  .then(text => {
-    try {
-      const data = JSON.parse(text);
-      if(data.error) throw new Error(data.error);
-      document.getElementById('lb-name-area').style.display = 'none'; 
-      document.getElementById('result-buttons').style.display = 'block';
-      btn.disabled = false; btn.innerHTML = `<span data-i18n="btn_submit">${i18n[currentLang].btn_submit}</span>`;
-      showLeaderboard();
-    } catch(e) {
-      throw new Error("JSON Parse Error: Make sure GAS is deployed to 'Anyone'");
-    }
-  })
-  .catch(e => { 
-    alert("Error saving score.\nGASのデプロイ設定(アクセスできるユーザー: 全員)になっているか確認してください！"); 
-    btn.disabled = false; btn.innerHTML = `<span data-i18n="btn_submit">${i18n[currentLang].btn_submit}</span>`; 
-  });
+  const cbName = 'gasCallback_' + Date.now();
+  const script = document.createElement('script');
+  
+  window[cbName] = function(data) {
+    document.getElementById('lb-name-area').style.display = 'none';
+    document.getElementById('result-buttons').style.display = 'block';
+    btn.disabled = false; btn.innerHTML = `<span data-i18n="btn_submit">${i18n[currentLang].btn_submit}</span>`;
+    showLeaderboard();
+    delete window[cbName]; document.body.removeChild(script);
+  };
+  
+  script.onerror = function() {
+    alert("Network Error. GASのURLが正しいか確認してください。");
+    btn.disabled = false; btn.innerHTML = `<span data-i18n="btn_submit">${i18n[currentLang].btn_submit}</span>`;
+    delete window[cbName]; document.body.removeChild(script);
+  };
+
+  script.src = `${GAS_URL}?action=record&name=${encodeURIComponent(name)}&score=${finalScore}&timeStr=${encodeURIComponent(timeStr)}&callback=${cbName}`;
+  document.body.appendChild(script);
 }
 
+// 🚨 JSONPでランキングを取得
 function showLeaderboard() {
   document.getElementById('panel-result').style.display = 'none'; document.getElementById('panel-start').style.display = 'none'; document.getElementById('panel-leaderboard').style.display = 'block';
   document.getElementById('lb-list').innerHTML = "Loading...";
+
+  const cbName = 'gasCallbackLB_' + Date.now();
+  const script = document.createElement('script');
   
-  fetch(`${GAS_URL}?action=get`, { redirect: 'follow' })
-  .then(res => res.text())
-  .then(text => {
-    try {
-      const data = JSON.parse(text);
-      let html = "";
-      if (data.length === 0) { html = "No records yet. Be the first!"; } 
-      else {
-        data.forEach((row, i) => {
-          let rank = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}.`;
-          html += `<div style="display:flex; justify-content:space-between; border-bottom:1px dashed #555; padding:8px 0;">
-            <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:40%; color:#F7931A;">${rank} ${row.name}</span>
-            <span style="color:#FFF;">${row.score} <span style="color:#aaa; font-size:8px;">[${row.timeStr}]</span></span>
-          </div>`;
-        });
-      }
-      document.getElementById('lb-list').innerHTML = html;
-    } catch(e) {
-      document.getElementById('lb-list').innerHTML = "Error loading leaderboard.<br>GASのアクセス権限を確認してください。"; 
+  window[cbName] = function(data) {
+    let html = "";
+    if (!data || data.length === 0) { html = "No records yet. Be the first!"; } 
+    else {
+      data.forEach((row, i) => {
+        let rank = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `${i+1}.`;
+        html += `<div style="display:flex; justify-content:space-between; border-bottom:1px dashed #555; padding:8px 0;">
+          <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:40%; color:#F7931A;">${rank} ${row.name}</span>
+          <span style="color:#FFF;">${row.score} <span style="color:#aaa; font-size:8px;">[${row.timeStr}]</span></span>
+        </div>`;
+      });
     }
-  }).catch(e => { document.getElementById('lb-list').innerHTML = "Network Error."; });
+    document.getElementById('lb-list').innerHTML = html;
+    delete window[cbName]; document.body.removeChild(script);
+  };
+  
+  script.onerror = function() {
+    document.getElementById('lb-list').innerHTML = "Network Error.";
+    delete window[cbName]; document.body.removeChild(script);
+  };
+
+  script.src = `${GAS_URL}?action=get&callback=${cbName}`;
+  document.body.appendChild(script);
 }
 
 function closeLeaderboard() {
@@ -278,17 +296,21 @@ function closeLeaderboard() {
 }
 
 function shareTwitter() {
-  const text = `I survived for ${document.getElementById('final-time').innerText} and scored ${Math.floor(score)} points in BITCOIN RUN! 🏃‍♂️⚡️\nDodge the villains and stack Sats!\n#Bitcoin #LightningNetwork`;
-  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
+  const timeStr = document.getElementById('final-time').innerText;
+  const finalScore = Math.floor(score);
+  let text = i18n[currentLang].share_text.replace('{time}', timeStr).replace('{score}', finalScore);
+  const randomGif = shareGifs[Math.floor(Math.random() * shareGifs.length)];
+  const appUrl = window.location.href.split('?')[0]; 
+  const tweetContent = text + "\n\n" + randomGif;
+  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetContent)}&url=${encodeURIComponent(appUrl)}`, '_blank');
 }
 
 // ----------------------------------------------------
-// ゲームエンジン (Canvas 2D) - 完全統一仕様
+// ゲームエンジン (Canvas 2D)
 // ----------------------------------------------------
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-canvas.width = 800;
-canvas.height = 450; 
+canvas.width = 800; canvas.height = 450; 
 const groundY = 400; 
 
 let player, obstacles, items, bgElements, gameSpeed, score, frame, isGameOver, reqId;
@@ -299,7 +321,7 @@ function startGame() {
   document.getElementById('panel-leaderboard').style.display = 'none';
   canvas.style.display = 'block';
   
-  player = { x: 80, y: groundY - 20, r: 18, vy: 0, gravity: 0.6, jump: -10, jumpCount: 0, maxJumps: 3 };
+  player = { x: 80, y: groundY - 20, r: 18, vy: 0, gravity: 0.5, jump: -8.5, jumpCount: 0, maxJumps: 3 };
   obstacles =[]; items =[];
   
   bgElements = { clouds:[], mountains:[], trees:[] };
@@ -307,7 +329,7 @@ function startGame() {
   for(let i=0; i<3; i++) bgElements.mountains.push({x: i*300, y: groundY, w: 150 + Math.random()*100, h: 100 + Math.random()*80});
   for(let i=0; i<4; i++) bgElements.trees.push({x: i*250, y: groundY});
 
-  gameSpeed = 4.5; 
+  gameSpeed = 3.2; 
   score = 0; frame = 0; isGameOver = false;
 
   if(reqId) cancelAnimationFrame(reqId);
@@ -317,8 +339,7 @@ function startGame() {
 function jump() {
   if (isGameOver) return;
   if (player.jumpCount < player.maxJumps) {
-    player.vy = player.jump;
-    player.jumpCount++;
+    player.vy = player.jump; player.jumpCount++;
   }
 }
 
@@ -340,21 +361,17 @@ function updateGame() {
 
   let isOverPit = false;
   for (let obs of obstacles) {
-    if (obs.type === 'fiat_pit' && player.x > obs.x + 10 && player.x < obs.x + obs.w - 10) {
-      isOverPit = true;
-    }
+    if (obs.type === 'fiat_pit' && player.x > obs.x + 10 && player.x < obs.x + obs.w - 10) { isOverPit = true; }
   }
 
   if (!isOverPit && player.y + player.r >= groundY) {
-    player.y = groundY - player.r;
-    player.vy = 0;
-    player.jumpCount = 0; 
+    player.y = groundY - player.r; player.vy = 0; player.jumpCount = 0; 
   }
 
   if (player.y - player.r > canvas.height) { gameOver(); return; }
 
   frame++;
-  let spawnRate = Math.max(60, 150 - Math.floor(gameSpeed * 10)); 
+  let spawnRate = Math.max(80, 180 - Math.floor(gameSpeed * 10)); 
   
   if (frame % spawnRate === 0) {
     if (Math.random() < 0.2) {
@@ -363,22 +380,18 @@ function updateGame() {
     } else {
       const types =['banker', 'shitcoin', 'cbdc_ufo'];
       const type = types[Math.floor(Math.random() * types.length)];
-      
       if (type === 'cbdc_ufo') {
-        let w = 60, h = 20;
-        let flyY = groundY - 120 - Math.random() * 100; 
+        let w = 60, h = 20; let flyY = groundY - 120 - Math.random() * 100; 
         obstacles.push({ type: type, x: canvas.width, y: flyY, w: w, h: h, base_y: flyY });
       } else if (type === 'banker') {
-        let w = 50, h = 70;
-        obstacles.push({ type: type, x: canvas.width, y: groundY - h, w: w, h: h });
+        let w = 50, h = 70; obstacles.push({ type: type, x: canvas.width, y: groundY - h, w: w, h: h });
       } else if (type === 'shitcoin') {
-        let w = 40, h = 40;
-        obstacles.push({ type: type, x: canvas.width, y: groundY - h - 10, w: w, h: h }); 
+        let w = 40, h = 40; obstacles.push({ type: type, x: canvas.width, y: groundY - h - 10, w: w, h: h }); 
       }
     }
   }
 
-  if (frame % 90 === 0) items.push({ x: canvas.width, y: groundY - 80 - Math.random() * 150, r: 15 });
+  if (frame % 110 === 0) items.push({ x: canvas.width, y: groundY - 80 - Math.random() * 150, r: 15 });
 
   bgElements.clouds.forEach(c => { c.x -= gameSpeed * 0.2; if(c.x + c.w < 0) { c.x = canvas.width + Math.random()*100; c.y = 50 + Math.random()*(canvas.height/3); } });
   bgElements.mountains.forEach(m => { m.x -= gameSpeed * 0.1; if(m.x + m.w < -100) m.x = canvas.width + Math.random()*200; });
@@ -387,11 +400,7 @@ function updateGame() {
   for (let i = 0; i < obstacles.length; i++) {
     let obs = obstacles[i];
     obs.x -= gameSpeed;
-    
-    if (obs.type === 'cbdc_ufo') {
-      obs.y = obs.base_y + Math.sin(frame * 0.1 + obs.x * 0.05) * 20; 
-    }
-
+    if (obs.type === 'cbdc_ufo') { obs.y = obs.base_y + Math.sin(frame * 0.1 + obs.x * 0.05) * 20; }
     if (obs.type !== 'fiat_pit') {
       let hitbox = { x: obs.x + 10, y: obs.y + 10, w: obs.w - 20, h: obs.h - 15 };
       if (circleRectCollide(player, hitbox)) { gameOver(); return; }
@@ -399,19 +408,14 @@ function updateGame() {
   }
 
   for (let i = 0; i < items.length; i++) {
-    let item = items[i];
-    item.x -= gameSpeed;
+    let item = items[i]; item.x -= gameSpeed;
     let dx = player.x - item.x; let dy = player.y - item.y;
-    if (Math.sqrt(dx*dx + dy*dy) < player.r + item.r) {
-      score += 50; items.splice(i, 1); i--;
-    }
+    if (Math.sqrt(dx*dx + dy*dy) < player.r + item.r) { score += 50; items.splice(i, 1); i--; }
   }
 
   obstacles = obstacles.filter(o => o.x + o.w > 0);
   items = items.filter(i => i.x + i.r > 0);
-
-  score += 0.1; 
-  gameSpeed = 4.5 + (frame / 1500); 
+  score += 0.1; gameSpeed = 3.2 + (frame / 1800); 
   
   drawGame();
   reqId = requestAnimationFrame(updateGame);
@@ -419,10 +423,8 @@ function updateGame() {
 
 function circleRectCollide(circle, rect) {
   let testX = circle.x; let testY = circle.y;
-  if (circle.x < rect.x) testX = rect.x;
-  else if (circle.x > rect.x + rect.w) testX = rect.x + rect.w;
-  if (circle.y < rect.y) testY = rect.y;
-  else if (circle.y > rect.y + rect.h) testY = rect.y + rect.h;
+  if (circle.x < rect.x) testX = rect.x; else if (circle.x > rect.x + rect.w) testX = rect.x + rect.w;
+  if (circle.y < rect.y) testY = rect.y; else if (circle.y > rect.y + rect.h) testY = rect.y + rect.h;
   let distX = circle.x - testX; let distY = circle.y - testY;
   return Math.sqrt((distX*distX) + (distY*distY)) <= circle.r - 5; 
 }
@@ -472,15 +474,13 @@ function drawGame() {
   if(player.vy === 0) ctx.rotate(Math.sin(frame * 0.4) * 0.3); 
   let gradB = ctx.createRadialGradient(0, 0, player.r * 0.2, 0, 0, player.r);
   gradB.addColorStop(0, "#FFD700"); gradB.addColorStop(1, "#B8860B");
-  ctx.beginPath(); ctx.arc(0, 0, player.r, 0, Math.PI*2);
-  ctx.fillStyle = gradB; ctx.fill();
+  ctx.beginPath(); ctx.arc(0, 0, player.r, 0, Math.PI*2); ctx.fillStyle = gradB; ctx.fill();
   ctx.lineWidth = 2; ctx.strokeStyle = "#DAA520"; ctx.stroke();
   ctx.fillStyle = "#fff"; ctx.font = "bold 20px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("₿", 0, 0);
   ctx.restore();
 
   for (let obs of obstacles) {
     if (obs.type === 'fiat_pit') continue;
-
     let cx = obs.x + obs.w/2; let cy = obs.y + obs.h/2;
 
     if (obs.type === 'banker') {
@@ -503,7 +503,6 @@ function drawGame() {
       let gLight = ctx.createLinearGradient(cx, cy, cx, groundY);
       gLight.addColorStop(0, "rgba(46, 204, 113, 0.6)"); gLight.addColorStop(1, "rgba(46, 204, 113, 0)");
       ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx - 30, groundY); ctx.lineTo(cx + 30, groundY); ctx.fillStyle = gLight; ctx.fill();
-      
       let gUFO = ctx.createLinearGradient(obs.x, obs.y, obs.x, obs.y + obs.h);
       gUFO.addColorStop(0, "#bdc3c7"); gUFO.addColorStop(1, "#7f8c8d");
       ctx.fillStyle = gUFO; ctx.beginPath(); ctx.ellipse(cx, cy, obs.w/2, obs.h/2, 0, 0, Math.PI*2); ctx.fill();
@@ -517,7 +516,6 @@ function drawGame() {
     ctx.shadowBlur = 15; ctx.shadowColor = "#FFEA00"; 
     ctx.beginPath(); ctx.arc(0, 0, item.r, 0, Math.PI*2); ctx.fillStyle = "#FFC300"; ctx.fill();
     ctx.lineWidth = 2; ctx.strokeStyle = "#FFFFFF"; ctx.stroke();
-    
     ctx.shadowBlur = 0; ctx.fillStyle = "#000";
     ctx.beginPath(); ctx.moveTo(-2, -7); ctx.lineTo(4, -7); ctx.lineTo(1, -1); ctx.lineTo(5, -1);
     ctx.lineTo(-3, 8); ctx.lineTo(-1, 2); ctx.lineTo(-6, 2); ctx.closePath(); ctx.fill();

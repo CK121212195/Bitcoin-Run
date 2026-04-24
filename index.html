@@ -8,14 +8,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+JP:wght@700&display=swap" rel="stylesheet">
   
   <style>
-    :root { --primary: #F7931A; --bg: #222; }
+    :root { --primary: #F7931A; --bg: #111; }
     body {
       margin: 0; padding: 0; background-color: var(--bg); color: white;
       font-family: 'Noto Sans JP', sans-serif; display: flex; flex-direction: column;
-      align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; touch-action: none;
+      align-items: center; justify-content: center; width: 100vw; height: 100vh; overflow: hidden; touch-action: none;
     }
     
-    /* 📱 スマホ縦画面時の警告オーバーレイ (日英併記) */
+    /* スマホ縦画面時の警告オーバーレイ */
     #rotate-overlay {
       display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: rgba(0,0,0,0.95); z-index: 10000; color: #fff;
@@ -28,25 +28,25 @@
     }
 
     #app-container {
-      width: 100%; max-width: 800px; display: flex; flex-direction: column; 
-      align-items: center; justify-content: center; height: 100dvh; position: relative;
+      width: 100vw; height: 100vh; display: flex; flex-direction: column; 
+      align-items: center; justify-content: center; position: relative;
     }
 
-    .lang-selector { position: absolute; top: 15px; right: 15px; z-index: 100; }
-    select.lang-select { background: #000; color: #fff; border: 1px solid var(--primary); padding: 5px 10px; border-radius: 5px; font-family: 'Press Start 2P', cursive; font-size: 10px; cursor: pointer; }
+    .lang-selector { position: absolute; top: 10px; right: 10px; z-index: 100; }
+    select.lang-select { background: #000; color: #fff; border: 1px solid var(--primary); padding: 5px 10px; border-radius: 5px; font-family: 'Press Start 2P', cursive; font-size: 8px; cursor: pointer; }
 
     /* UIパネル */
     .panel {
       background: rgba(0, 0, 0, 0.85); border: 3px solid var(--primary); border-radius: 12px;
-      padding: 30px 20px; text-align: center; box-shadow: 0 0 20px rgba(247, 147, 26, 0.5);
-      width: 90%; max-width: 420px; position: absolute; z-index: 10; max-height: 90dvh; overflow-y: auto;
+      padding: 20px 15px; text-align: center; box-shadow: 0 0 20px rgba(247, 147, 26, 0.5);
+      width: 90%; max-width: 420px; position: absolute; z-index: 10; max-height: 95vh; overflow-y: auto;
     }
 
-    .title { font-family: 'Press Start 2P', cursive; font-size: 1.5rem; color: var(--primary); margin-bottom: 15px; line-height: 1.5; text-shadow: 2px 2px 0px #000; }
-    .desc { font-size: 0.85rem; margin-bottom: 15px; line-height: 1.8; color: #ddd; font-weight: bold;}
+    .title { font-family: 'Press Start 2P', cursive; font-size: 1.5rem; color: var(--primary); margin-bottom: 10px; line-height: 1.5; text-shadow: 2px 2px 0px #000; }
+    .desc { font-size: 0.8rem; margin-bottom: 15px; line-height: 1.6; color: #ddd; font-weight: bold;}
     
     .btn {
-      background: var(--primary); color: #000; border: none; padding: 15px 10px; width: 100%;
+      background: var(--primary); color: #000; border: none; padding: 12px 10px; width: 100%;
       border-radius: 8px; cursor: pointer; font-family: 'Press Start 2P', cursive; font-size: 10px;
       box-shadow: 0 4px 0 #C47F00; transition: 0.1s; margin-bottom: 10px;
     }
@@ -55,15 +55,13 @@
     .btn-free { background: #00FF88; color: #000; box-shadow: 0 4px 0 #009955; }
     .btn-gold { background: #FFD700; color: #000; box-shadow: 0 4px 0 #C4A000; }
 
-    .qr-img { width: 180px; height: 180px; border: 4px solid #fff; border-radius: 8px; margin: 10px auto; display: block; }
-    .inv-text { width: 100%; padding: 10px; background: #000; color: #00FF88; border: 1px solid #333; border-radius: 5px; font-family: monospace; font-size: 10px; margin-bottom: 15px; word-break: break-all; resize: none; }
+    .qr-img { width: 160px; height: 160px; border: 4px solid #fff; border-radius: 8px; margin: 5px auto; display: block; }
+    .inv-text { width: 100%; padding: 8px; background: #000; color: #00FF88; border: 1px solid #333; border-radius: 5px; font-family: monospace; font-size: 10px; margin-bottom: 10px; word-break: break-all; resize: none; }
 
-    /* ゲームキャンバス */
+    /* ゲームキャンバス (JSでサイズを動的計算するためwidth/height指定はなし) */
     canvas {
       display: none; background: #5CB8FF; border: 4px solid #fff;
       border-radius: 8px; box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); 
-      width: 100%; max-width: 800px; max-height: 90dvh; 
-      object-fit: contain; aspect-ratio: 800 / 360;
     }
   </style>
 </head>
@@ -80,22 +78,22 @@
     
     <!-- トップ画面 -->
     <div class="panel" id="panel-start">
-      <div class="lang-selector" style="position:relative; top:0; right:0; margin-bottom:15px;">
+      <div class="lang-selector">
         <select class="lang-select" onchange="changeLang(this.value)">
           <option value="ja">🇯🇵 JP</option><option value="en">🇺🇸 EN</option><option value="ko">🇰🇷 KO</option>
         </select>
       </div>
 
-      <div class="title">BITCOIN<br>RUN 🏃‍♂️</div>
-      <div class="desc" data-i18n="desc">明るい世界を駆け抜けろ！<br>ヴィランを華麗にかわし、無限のハイスコアを叩き出せ！</div>
+      <div class="title" style="margin-top: 15px;">BITCOIN<br>RUN 🏃‍♂️</div>
+      <div class="desc" data-i18n="desc">ヴィランを華麗にかわし、無限のハイスコアを叩き出せ！</div>
       
-      <!-- HOW TO PLAY (わかりやすさ重視) -->
-      <div style="background: rgba(0,0,0,0.5); padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: left; font-size: 10px; line-height: 1.8; color: #ddd; border: 1px solid #333;">
+      <!-- HOW TO PLAY -->
+      <div style="background: rgba(0,0,0,0.5); padding: 12px; border-radius: 8px; margin-bottom: 15px; text-align: left; font-size: 9px; line-height: 1.8; color: #ddd; border: 1px solid #333;">
         <div style="color:var(--primary); font-weight:bold; margin-bottom: 5px; text-align:center;" data-i18n="howto_title">📖 HOW TO PLAY</div>
-        <div data-i18n="howto_1">👆 画面をタップ/クリックでジャンプ</div>
-        <div data-i18n="howto_2">🚀 空中で連続タップして【最大3段ジャンプ】！</div>
-        <div data-i18n="howto_3">👿 GOX, SBF, KIM, FIATの沼を避けろ！</div>
-        <div data-i18n="howto_4">⚡ 雷マークを取るとスコアボーナス！</div>
+        <div data-i18n="howto_1">👆 画面タップ/クリックでジャンプ</div>
+        <div data-i18n="howto_2">🚀 空中で連続タップ【最大3段ジャンプ】</div>
+        <div data-i18n="howto_3">👿 GOX, SBF, KIM, $オバケ, FIAT沼を避けろ</div>
+        <div data-i18n="howto_4">⚡ 雷マークを取るとスコアボーナス</div>
       </div>
 
       <button class="btn btn-free" onclick="startGame()"><span data-i18n="btn_play_free">PLAY FREE</span></button>
@@ -111,7 +109,6 @@
       <div style="font-size:12px; color:#aaa; margin-bottom:5px; font-family: 'Press Start 2P', cursive;">TIME: <span id="final-time" style="color:#fff;">00:00</span></div>
       <div class="title" style="font-size:1.8rem; margin: 10px 0 20px;" id="final-score">0</div>
       
-      <!-- アクションボタン -->
       <div id="result-buttons">
         <button class="btn btn-free" onclick="startGame()"><span data-i18n="btn_retry_free">RETRY FREE</span></button>
         <button class="btn btn-secondary" onclick="shareTwitter()"><span data-i18n="btn_share">🐦 SHARE TO X</span></button>
@@ -119,7 +116,7 @@
         <button class="btn btn-secondary" onclick="showLeaderboard()" style="padding:10px;"><span data-i18n="btn_view_lb">📋 VIEW LEADERBOARD</span></button>
       </div>
 
-      <!-- 課金用インボイスエリア -->
+      <!-- 課金インボイス -->
       <div id="lb-invoice-area" style="display:none;">
         <div class="title" style="font-size: 1rem;" data-i18n="pay_to_record">PAY TO RECORD</div>
         <a id="lb-wallet-link" href="#"><img id="lb-qr" class="qr-img" src=""></a>
@@ -128,11 +125,11 @@
         <button class="btn btn-secondary" onclick="cancelLbPay()"><span data-i18n="btn_cancel">CANCEL</span></button>
       </div>
 
-      <!-- 名前入力エリア -->
+      <!-- 名前入力 -->
       <div id="lb-name-area" style="display:none;">
         <div class="title" style="font-size: 1rem; color:#00FF88;" data-i18n="payment_success">SUCCESS!</div>
         <p style="font-size: 10px;" data-i18n="enter_name">Enter your name:</p>
-        <input type="text" id="player-name" maxlength="15" style="width:90%; padding:12px; font-family:'Press Start 2P'; font-size:10px; margin-bottom:15px; text-align:center; border: 2px solid var(--primary); background:#111; color:#fff;">
+        <input type="text" id="player-name" maxlength="15" style="width:85%; padding:10px; font-family:'Press Start 2P'; font-size:10px; margin-bottom:15px; text-align:center; border: 2px solid var(--primary); background:#111; color:#fff;">
         <button class="btn btn-gold" onclick="submitScore()"><span data-i18n="btn_submit">SUBMIT</span></button>
       </div>
     </div>
@@ -159,24 +156,24 @@ const LNBITS_INVOICE_KEY = "67e5b0ad270f44d19e6d768bb3314e49";
 // 多言語辞書
 const i18n = {
   en: {
-    desc: "Run through the bright world!<br>Dodge villains and aim for an infinite high score!",
-    howto_title: "📖 HOW TO PLAY", howto_1: "👆 Tap/Click anywhere to JUMP", howto_2: "🚀 Tap in mid-air for TRIPLE JUMP!", howto_3: "👿 Dodge GOX, SBF, KIM & FIAT pits", howto_4: "⚡ Grab lightning to boost score",
+    desc: "Triple jump to dodge villains and aiming for an infinite high score!",
+    howto_title: "📖 HOW TO PLAY", howto_1: "👆 Tap/Click anywhere to JUMP", howto_2: "🚀 Tap in mid-air for TRIPLE JUMP!", howto_3: "👿 Dodge Villains, FIAT pits & $ Ghosts", howto_4: "⚡ Grab lightning to boost score",
     btn_play_free: "PLAY FREE", gameover: "GAME OVER", btn_share: "🐦 SHARE TO X", btn_retry_free: "RETRY FREE",
     btn_leaderboard: "🏆 SAVE SCORE (100 SATS)", btn_view_lb: "📋 VIEW LEADERBOARD",
     pay_to_record: "PAY TO RECORD", waiting: "WAITING FOR PAYMENT...", btn_cancel: "CANCEL", btn_close: "CLOSE",
     payment_success: "SUCCESS!", enter_name: "Enter your name (Max 15):", btn_submit: "SUBMIT SCORE", alert_copy: "Copied!"
   },
   ja: {
-    desc: "明るい世界を駆け抜けろ！<br>ヴィランを華麗にかわし、無限のハイスコアを叩き出せ！",
-    howto_title: "📖 遊び方", howto_1: "👆 画面をタップ/クリックでジャンプ", howto_2: "🚀 空中で連続タップして【最大3段ジャンプ】！", howto_3: "👿 GOX, SBF, KIM, FIATの沼を避けろ！", howto_4: "⚡ 雷マークを取るとスコアボーナス！",
+    desc: "ヴィランを華麗にかわし、無限のハイスコアを叩き出せ！",
+    howto_title: "📖 遊び方", howto_1: "👆 画面タップ/クリックでジャンプ", howto_2: "🚀 空中で連続タップ【最大3段ジャンプ】", howto_3: "👿 GOX, SBF, KIM, $オバケ, FIAT沼を避けろ", howto_4: "⚡ 雷マークを取るとスコアボーナス",
     btn_play_free: "無料でプレイ", gameover: "ゲームオーバー", btn_share: "🐦 𝕏でシェア", btn_retry_free: "もう一度プレイ",
     btn_leaderboard: "🏆 スコアを記録 (100 SATS)", btn_view_lb: "📋 ランキングを見る",
     pay_to_record: "100 Satsのお賽銭", waiting: "支払いを確認中...", btn_cancel: "キャンセル", btn_close: "閉じる",
     payment_success: "支払い完了！", enter_name: "名前を入力してください:", btn_submit: "記録する", alert_copy: "コピーしました！"
   },
   ko: {
-    desc: "밝은 세상을 달려보세요!<br>악당을 피하고 무한 최고 점수에 도전하세요!",
-    howto_title: "📖 플레이 방법", howto_1: "👆 화면을 탭/클릭하여 점프", howto_2: "🚀 공중에서 연속 탭으로 【3단 점프】!", howto_3: "👿 GOX, SBF, KIM, FIAT 늪을 피하세요!", howto_4: "⚡ 번개를 획득하여 점수 올리기!",
+    desc: "악당을 피하고 무한 최고 점수에 도전하세요!",
+    howto_title: "📖 플레이 방법", howto_1: "👆 화면을 탭/클릭하여 점프", howto_2: "🚀 공중에서 연속 탭으로 【3단 점프】!", howto_3: "👿 악당, FIAT 늪, 달러 유령을 피하세요!", howto_4: "⚡ 번개를 획득하여 점수 올리기",
     btn_play_free: "무료로 플레이", gameover: "게임 오버", btn_share: "🐦 𝕏에 공유하기", btn_retry_free: "다시 플레이",
     btn_leaderboard: "🏆 점수 기록 (100 SATS)", btn_view_lb: "📋 랭킹 보기",
     pay_to_record: "결제하여 기록하기", waiting: "결제 대기 중...", btn_cancel: "취소", btn_close: "닫기",
@@ -211,14 +208,11 @@ function openLeaderboardPay() {
   .then(data => {
     currentHash = data.payment_hash;
     const inv = data.payment_request;
-    
     document.getElementById('lb-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=lightning:${inv}`;
     document.getElementById('lb-inv-text').value = inv;
     document.getElementById('lb-wallet-link').href = `lightning:${inv}`;
-
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
     if(isMobile) setTimeout(() => { window.location.href = `lightning:${inv}`; }, 500);
-
     pollPayment(currentHash);
   }).catch(e => alert("API Error"));
 }
@@ -238,22 +232,13 @@ function pollPayment(hash) {
   }, 3000);
 }
 
-function copyLbInvoice() {
-  document.getElementById('lb-inv-text').select(); document.execCommand('copy');
-  alert(i18n[currentLang].alert_copy);
-}
-
-function cancelLbPay() {
-  if(checkPaymentInterval) clearInterval(checkPaymentInterval);
-  document.getElementById('lb-invoice-area').style.display = 'none';
-  document.getElementById('result-buttons').style.display = 'block';
-}
+function copyLbInvoice() { document.getElementById('lb-inv-text').select(); document.execCommand('copy'); alert(i18n[currentLang].alert_copy); }
+function cancelLbPay() { if(checkPaymentInterval) clearInterval(checkPaymentInterval); document.getElementById('lb-invoice-area').style.display = 'none'; document.getElementById('result-buttons').style.display = 'block'; }
 
 function submitScore() {
   const name = document.getElementById('player-name').value.trim() || 'Anon';
   const timeStr = document.getElementById('final-time').innerText;
   const finalScore = Math.floor(score);
-  
   const btn = document.querySelector('#lb-name-area button');
   btn.disabled = true; btn.innerText = "SAVING...";
 
@@ -264,21 +249,13 @@ function submitScore() {
     document.getElementById('result-buttons').style.display = 'block';
     btn.disabled = false; btn.innerHTML = `<span data-i18n="btn_submit">${i18n[currentLang].btn_submit}</span>`;
     showLeaderboard();
-  }).catch(e => {
-    alert("Error saving score");
-    btn.disabled = false; btn.innerHTML = `<span data-i18n="btn_submit">${i18n[currentLang].btn_submit}</span>`;
-  });
+  }).catch(e => { alert("Error saving score"); btn.disabled = false; btn.innerHTML = `<span data-i18n="btn_submit">${i18n[currentLang].btn_submit}</span>`; });
 }
 
 function showLeaderboard() {
-  document.getElementById('panel-result').style.display = 'none';
-  document.getElementById('panel-start').style.display = 'none';
-  document.getElementById('panel-leaderboard').style.display = 'block';
+  document.getElementById('panel-result').style.display = 'none'; document.getElementById('panel-start').style.display = 'none'; document.getElementById('panel-leaderboard').style.display = 'block';
   document.getElementById('lb-list').innerHTML = "Loading...";
-
-  fetch(`${GAS_URL}?action=get`)
-  .then(res => res.json())
-  .then(data => {
+  fetch(`${GAS_URL}?action=get`).then(res => res.json()).then(data => {
     let html = "";
     if (data.length === 0) { html = "No records yet. Be the first!"; } 
     else {
@@ -310,8 +287,31 @@ function shareTwitter() {
 // ----------------------------------------------------
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-canvas.width = 800;
-canvas.height = 360; 
+const INTERNAL_WIDTH = 800;
+const INTERNAL_HEIGHT = 360;
+canvas.width = INTERNAL_WIDTH;
+canvas.height = INTERNAL_HEIGHT;
+
+// 🚨 【超重要】どんなスマホでも絶対に上下が見切れない魔法のリサイズ関数
+function resizeCanvas() {
+  // 画面の実際の表示可能領域を取得 (余白を少し持たせる)
+  const maxWidth = window.innerWidth * 0.95;
+  const maxHeight = window.innerHeight * 0.85; 
+  
+  const targetRatio = INTERNAL_WIDTH / INTERNAL_HEIGHT;
+  const currentRatio = maxWidth / maxHeight;
+  
+  if (currentRatio > targetRatio) {
+    // 画面が横長すぎる場合、高さに合わせて幅を縮小
+    canvas.style.height = maxHeight + 'px';
+    canvas.style.width = (maxHeight * targetRatio) + 'px';
+  } else {
+    // 画面が縦長（幅が狭い）場合、幅に合わせて高さを縮小
+    canvas.style.width = maxWidth + 'px';
+    canvas.style.height = (maxWidth / targetRatio) + 'px';
+  }
+}
+window.addEventListener('resize', resizeCanvas);
 
 let player, obstacles, items, bgElements, gameSpeed, score, frame, isGameOver, reqId;
 
@@ -320,8 +320,10 @@ function startGame() {
   document.getElementById('panel-result').style.display = 'none';
   document.getElementById('panel-leaderboard').style.display = 'none';
   canvas.style.display = 'block';
+  resizeCanvas(); // 開始時に確実にリサイズを適用
   
-  player = { x: 50, y: 100, r: 16, vy: 0, gravity: 0.65, jump: -10, jumpCount: 0, maxJumps: 3 };
+  // 🚨 【調整】少しゆっくりめのスピードと、滞空時間のあるジャンプに調整
+  player = { x: 50, y: 100, r: 16, vy: 0, gravity: 0.5, jump: -9, jumpCount: 0, maxJumps: 3 };
   obstacles = []; items =[];
   
   bgElements = {
@@ -330,7 +332,8 @@ function startGame() {
     trees:[ {x: 200, y: canvas.height - 40}, {x: 450, y: canvas.height - 40}, {x: 700, y: canvas.height - 40} ]
   };
 
-  gameSpeed = 5.5; score = 0; frame = 0; isGameOver = false;
+  gameSpeed = 4.0; // 初期スピード低下
+  score = 0; frame = 0; isGameOver = false;
 
   if(reqId) cancelAnimationFrame(reqId);
   updateGame();
@@ -344,7 +347,7 @@ function jump() {
   }
 }
 
-// 画面のどこをタップしてもジャンプ
+// 画面タップでジャンプ
 window.addEventListener('touchstart', (e) => {
   if (e.target.closest('.panel') || e.target.tagName === 'SELECT') return; 
   e.preventDefault(); jump();
@@ -379,7 +382,8 @@ function updateGame() {
   if (player.y - player.r > canvas.height) { gameOver(); return; }
 
   frame++;
-  let spawnRate = Math.max(35, 80 - Math.floor(gameSpeed * 4)); 
+  // 障害物の出現間隔もマイルドに
+  let spawnRate = Math.max(50, 100 - Math.floor(gameSpeed * 5)); 
   
   if (frame % spawnRate === 0) {
     if (Math.random() < 0.25) {
@@ -389,8 +393,8 @@ function updateGame() {
       const types =['gox', 'sbf', 'kim', 'ghost'];
       const type = types[Math.floor(Math.random() * types.length)];
       let w = 40, h = 55;
-      if (type === 'gox') { w = 45; h = 55; }
-      if (type === 'ghost') { w = 45; h = 55; }
+      if (type === 'gox' || type === 'ghost') { w = 45; h = 55; }
+      if (type === 'kim') { w = 55; h = 55; }
       obstacles.push({ type: type, x: canvas.width, y: groundY - h, w: w, h: h });
     }
   }
@@ -422,13 +426,14 @@ function updateGame() {
   obstacles = obstacles.filter(o => o.x + o.w > 0);
   items = items.filter(i => i.x + i.r > 0);
 
-  score += 0.2; 
-  gameSpeed = 5.5 + (frame / 500); 
+  score += 0.1; 
+  gameSpeed = 4.0 + (frame / 800); // 難易度上昇を緩やかに
   
   drawGame();
   reqId = requestAnimationFrame(updateGame);
 }
 
+// 当たり判定を少し甘めに設定 (かすったくらいならセーフ)
 function circleRectCollide(circle, rect) {
   let testX = circle.x; let testY = circle.y;
   if (circle.x < rect.x) testX = rect.x;
@@ -436,7 +441,7 @@ function circleRectCollide(circle, rect) {
   if (circle.y < rect.y) testY = rect.y;
   else if (circle.y > rect.y + rect.h) testY = rect.y + rect.h;
   let distX = circle.x - testX; let distY = circle.y - testY;
-  return Math.sqrt((distX*distX) + (distY*distY)) <= circle.r;
+  return Math.sqrt((distX*distX) + (distY*distY)) <= circle.r - 2; 
 }
 
 function drawGame() {
@@ -467,7 +472,7 @@ function drawGame() {
     if (obs.type === 'fiat_pit') {
       ctx.fillStyle = "#5CB8FF"; ctx.fillRect(obs.x, groundY - 1, obs.w, 42); 
       
-      // 🌋 毒沼のアニメーション描画
+      // 🌋 毒沼アニメーション
       ctx.fillStyle = "#8B0000"; 
       ctx.beginPath(); ctx.moveTo(obs.x, groundY + 40); ctx.lineTo(obs.x, groundY + 10);
       for (let px = 0; px <= obs.w; px += 10) {
@@ -489,6 +494,7 @@ function drawGame() {
   ctx.fillStyle = "white"; ctx.beginPath(); ctx.arc(6, -6, 4, 0, Math.PI*2); ctx.fill();
   ctx.fillStyle = "black"; ctx.beginPath(); ctx.arc(7, -6, 2, 0, Math.PI*2); ctx.fill(); ctx.restore();
 
+  // 👿 画像なし！Canvasプログラミング描画のヴィランたち
   for (let obs of obstacles) {
     if (obs.type === 'fiat_pit') continue;
 
@@ -496,29 +502,24 @@ function drawGame() {
     let cy = obs.y + obs.h/2;
 
     if (obs.type === 'gox') {
-      // 👺 GOX ゴブリン
       cy += 5;
-      ctx.fillStyle = "#1e824c";
-      ctx.beginPath(); ctx.moveTo(cx-10, cy-15); ctx.lineTo(cx-15, cy-30); ctx.lineTo(cx-5, cy-15); ctx.fill();
+      ctx.fillStyle = "#1e824c"; ctx.beginPath(); ctx.moveTo(cx-10, cy-15); ctx.lineTo(cx-15, cy-30); ctx.lineTo(cx-5, cy-15); ctx.fill();
       ctx.beginPath(); ctx.moveTo(cx+10, cy-15); ctx.lineTo(cx+15, cy-30); ctx.lineTo(cx+5, cy-15); ctx.fill();
       ctx.fillStyle = "#2ecc71"; ctx.beginPath(); ctx.arc(cx, cy, 20, 0, Math.PI*2); ctx.fill();
       ctx.fillStyle = "#e74c3c"; ctx.beginPath(); ctx.arc(cx-8, cy-5, 4, 0, Math.PI*2); ctx.arc(cx+8, cy-5, 4, 0, Math.PI*2); ctx.fill();
       ctx.fillStyle = "#fff"; ctx.font = "bold 10px Arial"; ctx.textAlign="center"; ctx.fillText("GOX", cx, cy+12);
     } 
     else if (obs.type === 'sbf') {
-      // 🦱 SBF アフロ
       ctx.fillStyle = "#95a5a6"; ctx.beginPath(); ctx.arc(cx, cy+15, 15, Math.PI, 0); ctx.fill(); ctx.fillRect(cx-15, cy+15, 30, 15);
       ctx.fillStyle = "#f1c40f"; ctx.beginPath(); ctx.arc(cx, cy, 12, 0, Math.PI*2); ctx.fill();
       ctx.fillStyle = "#6e2c00"; ctx.beginPath();
       ctx.arc(cx-10, cy-10, 10, 0, Math.PI*2); ctx.arc(cx, cy-15, 12, 0, Math.PI*2); ctx.arc(cx+10, cy-10, 10, 0, Math.PI*2);
       ctx.arc(cx-12, cy-2, 8, 0, Math.PI*2); ctx.arc(cx+12, cy-2, 8, 0, Math.PI*2); ctx.fill();
-      ctx.strokeStyle = "#333"; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(cx-6, cy-2); ctx.lineTo(cx-2, cy-2); ctx.stroke();
+      ctx.strokeStyle = "#333"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(cx-6, cy-2); ctx.lineTo(cx-2, cy-2); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(cx+6, cy-2); ctx.lineTo(cx+2, cy-2); ctx.stroke();
       ctx.fillStyle = "#000"; ctx.font = "bold 8px Arial"; ctx.fillText("SBF", cx, cy+22);
     }
     else if (obs.type === 'kim') {
-      // 🚩 KIM 将軍
       ctx.fillStyle = "#2c3e50"; ctx.beginPath(); ctx.arc(cx, cy+10, 18, Math.PI, 0); ctx.fill(); ctx.fillRect(cx-18, cy+10, 36, 18);
       ctx.fillStyle = "#f39c12"; ctx.beginPath(); ctx.arc(cx, cy-5, 12, 0, Math.PI*2); ctx.fill();
       ctx.fillStyle = "#000"; ctx.fillRect(cx-10, cy-20, 20, 8);
@@ -527,7 +528,6 @@ function drawGame() {
       ctx.fillStyle = "#fff"; ctx.font = "bold 8px Arial"; ctx.fillText("KIM", cx, cy+18);
     }
     else if (obs.type === 'ghost') {
-      // 👻 米ドルオバケ
       let hover = Math.sin(frame * 0.15 + obs.x) * 5; 
       let drawY = obs.y + hover;
       ctx.fillStyle = "#85bb65"; 
@@ -551,8 +551,8 @@ function drawGame() {
   let totalSeconds = Math.floor(frame / 60);
   let m = String(Math.floor(totalSeconds / 60)).padStart(2, '0'); let s = String(totalSeconds % 60).padStart(2, '0');
   ctx.fillStyle = "#FFF"; ctx.font = "14px 'Press Start 2P', cursive"; ctx.shadowBlur = 4; ctx.shadowColor = "#000";
-  ctx.textAlign = "left"; ctx.textBaseline = "top"; ctx.fillText(`TIME: ${m}:${s}`, 15, 15);
-  ctx.textAlign = "right"; ctx.fillText(`SCORE: ${Math.floor(score)}`, canvas.width - 15, 15); ctx.shadowBlur = 0;
+  ctx.textAlign = "left"; ctx.textBaseline = "top"; ctx.fillText(`TIME: ${m}:${s}`, 15, 20);
+  ctx.textAlign = "right"; ctx.fillText(`SCORE: ${Math.floor(score)}`, canvas.width - 15, 20); ctx.shadowBlur = 0;
 }
 
 function gameOver() {

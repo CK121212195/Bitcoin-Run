@@ -9,7 +9,6 @@
   
   <style>
     :root { --primary: #F7931A; --bg: #111; }
-    /* スクロールを完全に禁止し、全画面に固定 */
     html, body {
       margin: 0; padding: 0; background-color: var(--bg); color: white;
       font-family: 'Noto Sans JP', sans-serif;
@@ -47,13 +46,11 @@
     .qr-img { width: 160px; height: 160px; border: 4px solid #fff; border-radius: 8px; margin: 5px auto; display: block; }
     .inv-text { width: 100%; padding: 8px; background: #000; color: #00FF88; border: 1px solid #333; border-radius: 5px; font-family: monospace; font-size: 10px; margin-bottom: 10px; word-break: break-all; resize: none; }
 
-    /* 🚨 【究極の解決策】内部解像度を維持したまま、画面内に最大限広げる魔法のCSS */
+    /* ゲームキャンバス */
     canvas {
       display: none; position: absolute; z-index: 1;
-      width: 100%; height: 100%; 
-      max-width: 100vw; max-height: 100vh;
-      object-fit: contain; /* スマホ縦持ちでも比率を壊さず黒帯を入れる */
-      background: #111;
+      width: 100%; height: 100%; max-width: 100vw; max-height: 100vh;
+      object-fit: contain; background: #111;
     }
   </style>
 </head>
@@ -138,6 +135,16 @@ const GAS_URL = "https://script.google.com/macros/s/AKfycbwYOUR_GAS_URL_HERE/exe
 const LNBITS_API_URL = "https://demo.lnbits.com/api/v1/payments";
 const LNBITS_INVOICE_KEY = "67e5b0ad270f44d19e6d768bb3314e49"; 
 
+// ==========================================
+// 🐦 Xシェア用ミームGIFランダムリスト
+// ==========================================
+const shareGifs =[
+  "https://media.giphy.com/media/trN9ht5RlE3Dcwavg2/giphy.gif", // Satoshi Nakamoto
+  "https://media.giphy.com/media/7FBY7h5Psqd20/giphy.gif", // Genesis Block
+  "https://media.giphy.com/media/5efT8LI3xGIG4/giphy.gif", // Cyber Hornets
+  "https://media.giphy.com/media/xT0xeJpnrWC4XWblOU/giphy.gif" // HODL
+];
+
 // 多言語辞書
 const i18n = {
   en: {
@@ -146,7 +153,8 @@ const i18n = {
     btn_play_free: "PLAY FREE", gameover: "GAME OVER", btn_share: "🐦 SHARE TO X", btn_retry_free: "RETRY FREE",
     btn_leaderboard: "🏆 SAVE SCORE (100 SATS)", btn_view_lb: "📋 VIEW LEADERBOARD",
     pay_to_record: "PAY TO RECORD", waiting: "WAITING FOR PAYMENT...", btn_cancel: "CANCEL", btn_close: "CLOSE",
-    payment_success: "SUCCESS!", enter_name: "Enter your name (Max 15):", btn_submit: "SUBMIT SCORE", alert_copy: "Copied!"
+    payment_success: "SUCCESS!", enter_name: "Enter your name (Max 15):", btn_submit: "SUBMIT SCORE", alert_copy: "Copied!",
+    share_text: "I survived for {time} and scored {score} points in BITCOIN RUN! 🏃‍♂️⚡️\nI'm dodging FED, SCAM coins & CBDC UFOs!\nCan you beat my score? 👇\n#Bitcoin #LightningNetwork"
   },
   ja: {
     desc: "縦でも横でもOK！<br>ヴィランを華麗にかわし、無限のハイスコアを叩き出せ！",
@@ -154,7 +162,8 @@ const i18n = {
     btn_play_free: "無料でプレイ", gameover: "ゲームオーバー", btn_share: "🐦 𝕏でシェア", btn_retry_free: "もう一度プレイ",
     btn_leaderboard: "🏆 スコアを記録 (100 SATS)", btn_view_lb: "📋 ランキングを見る",
     pay_to_record: "100 Satsのお賽銭", waiting: "支払いを確認中...", btn_cancel: "キャンセル", btn_close: "閉じる",
-    payment_success: "支払い完了！", enter_name: "名前を入力してください:", btn_submit: "記録する", alert_copy: "コピーしました！"
+    payment_success: "支払い完了！", enter_name: "名前を入力してください:", btn_submit: "記録する", alert_copy: "コピーしました！",
+    share_text: "BITCOIN RUNで【{time}】生き残り、スコア【{score}】を叩き出したよ！🏃‍♂️⚡️\n中央銀行やSCAMコイン、CBDCのUFOを避けまくれ！🛸\n君は僕を超えられるか？👇\n#Bitcoin #LightningNetwork"
   },
   ko: {
     desc: "세로/가로 모두 가능!<br>악당을 피하고 무한 최고 점수에 도전하세요!",
@@ -162,7 +171,8 @@ const i18n = {
     btn_play_free: "무료로 플레이", gameover: "게임 오버", btn_share: "🐦 𝕏에 공유하기", btn_retry_free: "다시 플레이",
     btn_leaderboard: "🏆 점수 기록 (100 SATS)", btn_view_lb: "📋 랭킹 보기",
     pay_to_record: "결제하여 기록하기", waiting: "결제 대기 중...", btn_cancel: "취소", btn_close: "닫기",
-    payment_success: "결제 완료!", enter_name: "이름을 입력하세요:", btn_submit: "등록하기", alert_copy: "복사되었습니다!"
+    payment_success: "결제 완료!", enter_name: "이름을 입력하세요:", btn_submit: "등록하기", alert_copy: "복사되었습니다!",
+    share_text: "BITCOIN RUN에서 【{time}】 동안 살아남아 【{score}】 점을 기록했습니다! 🏃‍♂️⚡️\n은행, 스캠 코인, CBDC UFO를 피해 달리세요! 🛸\n저를 뛰어넘을 수 있나요? 👇\n#Bitcoin #LightningNetwork"
   }
 };
 
@@ -256,8 +266,18 @@ function closeLeaderboard() {
 }
 
 function shareTwitter() {
-  const text = `I survived for ${document.getElementById('final-time').innerText} and scored ${Math.floor(score)} points in BITCOIN RUN! 🏃‍♂️⚡️\nDodge the villains and stack Sats!\n#Bitcoin #LightningNetwork`;
-  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
+  const timeStr = document.getElementById('final-time').innerText;
+  const finalScore = Math.floor(score);
+  // 多言語ディクショナリからテキストを取得して置換
+  let text = i18n[currentLang].share_text.replace('{time}', timeStr).replace('{score}', finalScore);
+  
+  // ランダムなミームGIFを添付
+  const randomGif = shareGifs[Math.floor(Math.random() * shareGifs.length)];
+  const appUrl = window.location.href.split('?')[0]; // クエリを除外したクリーンなURL
+  
+  // テキストとGIF URLを結合
+  const tweetContent = text + "\n\n" + randomGif;
+  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetContent)}&url=${encodeURIComponent(appUrl)}`, '_blank');
 }
 
 // ----------------------------------------------------
@@ -265,11 +285,9 @@ function shareTwitter() {
 // ----------------------------------------------------
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-
-// 🚨 内部解像度を 800x450 に完全固定。PCでもスマホでも絶対に狂いません。
 canvas.width = 800;
 canvas.height = 450; 
-const groundY = 400; // 地面の高さも固定
+const groundY = 400; 
 
 let player, obstacles, items, bgElements, gameSpeed, score, frame, isGameOver, reqId;
 
@@ -279,8 +297,8 @@ function startGame() {
   document.getElementById('panel-leaderboard').style.display = 'none';
   canvas.style.display = 'block';
   
-  // 🚨 落ち着いたジャンプ挙動 (3段ジャンプでちょうど画面上に届くくらい)
-  player = { x: 80, y: groundY - 20, r: 18, vy: 0, gravity: 0.6, jump: -10, jumpCount: 0, maxJumps: 3 };
+  // 🚨 ジャンプを「さらにふんわり」マイルドに調整
+  player = { x: 80, y: groundY - 20, r: 18, vy: 0, gravity: 0.5, jump: -8.5, jumpCount: 0, maxJumps: 3 };
   obstacles =[]; items =[];
   
   bgElements = { clouds:[], mountains:[], trees:[] };
@@ -288,7 +306,8 @@ function startGame() {
   for(let i=0; i<3; i++) bgElements.mountains.push({x: i*300, y: groundY, w: 150 + Math.random()*100, h: 100 + Math.random()*80});
   for(let i=0; i<4; i++) bgElements.trees.push({x: i*250, y: groundY});
 
-  gameSpeed = 4.5; // 初期スピード低下
+  // 🚨 スピードを大幅に低下 (誰でも遊べるスピードに)
+  gameSpeed = 3.2; 
   score = 0; frame = 0; isGameOver = false;
 
   if(reqId) cancelAnimationFrame(reqId);
@@ -335,7 +354,8 @@ function updateGame() {
   if (player.y - player.r > canvas.height) { gameOver(); return; }
 
   frame++;
-  let spawnRate = Math.max(60, 150 - Math.floor(gameSpeed * 10)); 
+  // 🚨 スピード低下に合わせて敵の出現間隔も余裕をもたせる
+  let spawnRate = Math.max(80, 180 - Math.floor(gameSpeed * 10)); 
   
   if (frame % spawnRate === 0) {
     if (Math.random() < 0.2) {
@@ -359,7 +379,7 @@ function updateGame() {
     }
   }
 
-  if (frame % 90 === 0) items.push({ x: canvas.width, y: groundY - 80 - Math.random() * 150, r: 15 });
+  if (frame % 110 === 0) items.push({ x: canvas.width, y: groundY - 80 - Math.random() * 150, r: 15 });
 
   bgElements.clouds.forEach(c => { c.x -= gameSpeed * 0.2; if(c.x + c.w < 0) { c.x = canvas.width + Math.random()*100; c.y = 50 + Math.random()*(canvas.height/3); } });
   bgElements.mountains.forEach(m => { m.x -= gameSpeed * 0.1; if(m.x + m.w < -100) m.x = canvas.width + Math.random()*200; });
@@ -392,13 +412,13 @@ function updateGame() {
   items = items.filter(i => i.x + i.r > 0);
 
   score += 0.1; 
-  gameSpeed = 4.5 + (frame / 1500); 
+  // 🚨 スピードアップも非常に緩やかに
+  gameSpeed = 3.2 + (frame / 1800); 
   
   drawGame();
   reqId = requestAnimationFrame(updateGame);
 }
 
-// 🚨 当たり判定を少し甘め(-5)にして、かすっただけならセーフにする
 function circleRectCollide(circle, rect) {
   let testX = circle.x; let testY = circle.y;
   if (circle.x < rect.x) testX = rect.x;
@@ -410,10 +430,8 @@ function circleRectCollide(circle, rect) {
 }
 
 function drawGame() {
-  // リアルな空のグラデーション
   let gSky = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  gSky.addColorStop(0, "#2980b9");
-  gSky.addColorStop(1, "#6dd5ed");
+  gSky.addColorStop(0, "#2980b9"); gSky.addColorStop(1, "#6dd5ed");
   ctx.fillStyle = gSky; ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   ctx.fillStyle = "#898989";
@@ -452,7 +470,6 @@ function drawGame() {
     }
   }
   
-  // 🪙 プレイヤー (リアルなゴールドコイン)
   ctx.save(); ctx.translate(player.x, player.y);
   if(player.vy === 0) ctx.rotate(Math.sin(frame * 0.4) * 0.3); 
   let gradB = ctx.createRadialGradient(0, 0, player.r * 0.2, 0, 0, player.r);
@@ -463,7 +480,6 @@ function drawGame() {
   ctx.fillStyle = "#fff"; ctx.font = "bold 20px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("₿", 0, 0);
   ctx.restore();
 
-  // 👿 新しいリアルなヴィランたち
   for (let obs of obstacles) {
     if (obs.type === 'fiat_pit') continue;
 

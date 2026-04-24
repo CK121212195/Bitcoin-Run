@@ -9,29 +9,20 @@
   
   <style>
     :root {
-      --primary: #F7931A; --bg: #5CB8FF; /* 明るい空の色 */
+      --primary: #F7931A; --bg: #222; 
     }
     body {
-      margin: 0; padding: 0; background-color: #222; color: white;
+      margin: 0; padding: 0; background-color: var(--bg); color: white;
       font-family: 'Noto Sans JP', sans-serif; display: flex; flex-direction: column;
       align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; touch-action: none;
     }
     
-    .lang-selector { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 100; }
-    select.lang-select { background: #000; color: #fff; border: 1px solid var(--primary); padding: 5px 10px; border-radius: 5px; font-family: 'Press Start 2P', cursive; font-size: 8px; cursor: pointer; }
+    .lang-selector { position: absolute; top: 15px; left: 50%; transform: translateX(-50%); z-index: 100; }
+    select.lang-select { background: #000; color: #fff; border: 1px solid var(--primary); padding: 5px 10px; border-radius: 5px; font-family: 'Press Start 2P', cursive; font-size: 10px; cursor: pointer; }
 
     /* --- メインコンテナ --- */
     #app-container {
       width: 100%; max-width: 800px; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; position: relative;
-    }
-
-    /* --- HUD (スコアと時間) --- */
-    .hud-container {
-      position: absolute; top: 20px; width: 90%; max-width: 760px;
-      display: flex; justify-content: space-between; z-index: 5;
-      font-family: 'Press Start 2P', cursive; font-size: 12px; color: #fff;
-      text-shadow: 2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
-      display: none;
     }
 
     /* --- UIパネル --- */
@@ -55,9 +46,9 @@
 
     /* --- ゲームキャンバス --- */
     canvas {
-      display: none; background: var(--bg); border: 4px solid #fff;
+      display: none; background: #5CB8FF; border: 4px solid #fff;
       border-radius: 8px; box-shadow: 0 0 20px rgba(0, 0, 0, 0.5); width: 95%; max-width: 800px;
-      image-rendering: pixelated; /* ドット絵をくっきり表示 */
+      image-rendering: pixelated;
     }
   </style>
 </head>
@@ -73,16 +64,10 @@
 
   <div id="app-container">
     
-    <!-- HUD -->
-    <div class="hud-container" id="hud">
-      <div id="time-display">TIME: 00:00</div>
-      <div id="score-display">SCORE: 0</div>
-    </div>
-
     <!-- トップ画面 -->
     <div class="panel" id="panel-start">
       <div class="title">BITCOIN<br>RUN 🏃‍♂️</div>
-      <div class="desc" data-i18n="desc">明るい世界を駆け抜けろ！<br>ヴィラン(SBF, GOX, KIM)を3段ジャンプで回避し、ハイスコアを叩き出せ！<br>(永遠に遊べる無限ゲーム)</div>
+      <div class="desc" data-i18n="desc">明るい世界を駆け抜けろ！<br>ヴィラン(SBF, GOX, KIM)とFIATの沼を3段ジャンプで回避し、ハイスコアを叩き出せ！</div>
       <button class="btn btn-free" onclick="startGame()"><span data-i18n="btn_play_free">PLAY FREE (TEST)</span></button>
     </div>
 
@@ -109,23 +94,24 @@
 const imgGox = new Image(); imgGox.src = 'gox.png';
 const imgSbf = new Image(); imgSbf.src = 'sbf.png';
 const imgKim = new Image(); imgKim.src = 'kim.png';
+const imgFiat = new Image(); imgFiat.src = 'FIAT.png'; // FIATの沼画像
 
 // ==========================================
 // 多言語辞書
 // ==========================================
 const i18n = {
   en: {
-    desc: "Run through the bright world!<br>Triple jump to dodge villains (SBF, GOX, KIM) and aim for an infinite high score!",
+    desc: "Run through the bright world!<br>Triple jump to dodge villains and FIAT pits, aiming for an infinite high score!",
     btn_play_free: "PLAY FREE", gameover: "GAME OVER", 
     btn_share: "🐦 SHARE TO X", btn_retry_free: "RETRY FREE"
   },
   ja: {
-    desc: "明るい世界を駆け抜けろ！<br>ヴィラン(SBF, GOX, KIM)を3段ジャンプで回避し、無限のハイスコアを叩き出せ！",
+    desc: "明るい世界を駆け抜けろ！<br>ヴィランとFIATの沼を3段ジャンプで回避し、無限のハイスコアを叩き出せ！",
     btn_play_free: "無料でプレイ", gameover: "ゲームオーバー", 
     btn_share: "🐦 𝕏でシェア", btn_retry_free: "もう一度プレイ"
   },
   ko: {
-    desc: "밝은 세상을 달려보세요!<br>3단 점프로 악당(SBF, GOX, KIM)을 피하고 무한 최고 점수에 도전하세요!",
+    desc: "밝은 세상을 달려보세요!<br>3단 점프로 악당과 FIAT 늪을 피하고 무한 최고 점수에 도전하세요!",
     btn_play_free: "무료로 플레이", gameover: "게임 오버", 
     btn_share: "🐦 𝕏에 공유하기", btn_retry_free: "다시 플레이"
   }
@@ -144,13 +130,10 @@ function changeLang(lang) {
 // ----------------------------------------------------
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-const scoreUI = document.getElementById('score-display');
-const timeUI = document.getElementById('time-display');
-const hud = document.getElementById('hud');
 
 function resizeCanvas() {
   canvas.width = Math.min(window.innerWidth * 0.95, 800);
-  canvas.height = 350; // 少し高さを広げて開放感を出す
+  canvas.height = 360; 
 }
 window.addEventListener('resize', resizeCanvas);
 resizeCanvas();
@@ -161,21 +144,20 @@ function startGame() {
   document.getElementById('panel-start').style.display = 'none';
   document.getElementById('panel-result').style.display = 'none';
   canvas.style.display = 'block';
-  hud.style.display = 'flex';
   
-  // 初期化
-  player = { x: 50, y: 100, r: 16, vy: 0, gravity: 0.6, jump: -9, jumpCount: 0, maxJumps: 3 };
+  // 初期化 (難易度調整: gravityとjumpを少し上げて滞空時間を短く、テンポを上げる)
+  player = { x: 50, y: 100, r: 16, vy: 0, gravity: 0.65, jump: -10, jumpCount: 0, maxJumps: 3 };
   obstacles = [];
   items =[];
   
   // 背景要素（雲と山）
   bgElements = {
-    clouds:[ {x: 50, y: 50, w: 60}, {x: 300, y: 80, w: 80}, {x: 600, y: 40, w: 50} ],
+    clouds:[ {x: 50, y: 60, w: 60}, {x: 350, y: 90, w: 80}, {x: 650, y: 50, w: 50} ],
     mountains:[ {x: 100, y: canvas.height - 40, w: 150, h: 100}, {x: 500, y: canvas.height - 40, w: 200, h: 150} ],
     trees:[ {x: 200, y: canvas.height - 40}, {x: 450, y: canvas.height - 40}, {x: 700, y: canvas.height - 40} ]
   };
 
-  gameSpeed = 5;
+  gameSpeed = 5.5; // 初期スピード少しアップ
   score = 0;
   frame = 0;
   isGameOver = false;
@@ -202,32 +184,56 @@ function updateGame() {
   // 1. プレイヤーの物理演算
   player.vy += player.gravity;
   player.y += player.vy;
-  const groundY = canvas.height - 40; // 地面の高さ調整
+  const groundY = canvas.height - 40; 
 
-  if (player.y + player.r >= groundY) {
+  // FIATの沼（穴）の上にいるかどうかの判定
+  let isOverPit = false;
+  for (let obs of obstacles) {
+    if (obs.type === 'fiat_pit') {
+      // プレイヤーが穴の範囲内（少しマージンあり）にいるか
+      if (player.x > obs.x + 10 && player.x < obs.x + obs.w - 10) {
+        isOverPit = true;
+      }
+    }
+  }
+
+  // 地面の判定（沼の上にいない時だけ着地できる）
+  if (!isOverPit && player.y + player.r >= groundY) {
     player.y = groundY - player.r;
     player.vy = 0;
-    player.jumpCount = 0; // 地面に着いたらリセット
+    player.jumpCount = 0; 
+  }
+
+  // 画面の下に落ちたらゲームオーバー
+  if (player.y - player.r > canvas.height) {
+    gameOver();
+    return;
   }
 
   // 2. 障害物とアイテムの生成
   frame++;
-  let spawnRate = Math.max(40, 90 - Math.floor(gameSpeed * 4)); // スピード上限なしでどんどん難しくなる
+  let spawnRate = Math.max(35, 80 - Math.floor(gameSpeed * 4)); 
   
   if (frame % spawnRate === 0) {
-    const types = ['gox', 'sbf', 'kim'];
-    const type = types[Math.floor(Math.random() * types.length)];
-    // 画像の比率に合わせたサイズ設定
-    let w = 45, h = 55;
-    if (type === 'gox') { w = 50; h = 60; }
-    if (type === 'kim') { w = 55; h = 55; }
-    
-    obstacles.push({ type: type, x: canvas.width, y: groundY - h, w: w, h: h });
+    let r = Math.random();
+    if (r < 0.25) {
+      // 🕳️ FIATの沼 (幅広の崖)
+      let w = 120 + Math.random() * 80; // 最大200pxの幅
+      obstacles.push({ type: 'fiat_pit', x: canvas.width, y: groundY, w: w, h: 40 });
+    } else {
+      // 👿 ヴィラン
+      const types = ['gox', 'sbf', 'kim'];
+      const type = types[Math.floor(Math.random() * types.length)];
+      let w = 45, h = 55;
+      if (type === 'gox') { w = 50; h = 60; }
+      if (type === 'kim') { w = 55; h = 55; }
+      obstacles.push({ type: type, x: canvas.width, y: groundY - h, w: w, h: h });
+    }
   }
 
   // Sats（雷マーク）の生成
   if (frame % 80 === 0) {
-    items.push({ x: canvas.width, y: groundY - 50 - Math.random() * 100, r: 15 });
+    items.push({ x: canvas.width, y: groundY - 60 - Math.random() * 100, r: 15 });
   }
 
   // 3. 背景の移動 (パララックス)
@@ -240,9 +246,11 @@ function updateGame() {
     let obs = obstacles[i];
     obs.x -= gameSpeed;
     
-    // 画像の空白部分を考慮して、当たり判定(hitbox)を少し内側に設定
-    let hitbox = { x: obs.x + 8, y: obs.y + 10, w: obs.w - 16, h: obs.h - 10 };
-    if (circleRectCollide(player, hitbox)) { gameOver(); return; }
+    // FIAT沼以外のヴィランに対する当たり判定
+    if (obs.type !== 'fiat_pit') {
+      let hitbox = { x: obs.x + 8, y: obs.y + 10, w: obs.w - 16, h: obs.h - 10 };
+      if (circleRectCollide(player, hitbox)) { gameOver(); return; }
+    }
   }
 
   for (let i = 0; i < items.length; i++) {
@@ -251,7 +259,7 @@ function updateGame() {
     let dx = player.x - item.x;
     let dy = player.y - item.y;
     if (Math.sqrt(dx*dx + dy*dy) < player.r + item.r) {
-      score += 100; // サトシ取得でスコア大幅アップ
+      score += 100; // サトシ取得ボーナス
       items.splice(i, 1);
       i--;
     }
@@ -262,16 +270,8 @@ function updateGame() {
   items = items.filter(i => i.x + i.r > 0);
 
   // 5. スコアと難易度（無限上昇）
-  score += 0.2; // 生き残るだけでも増える
-  gameSpeed = 5 + (frame / 600); // 10秒ごとに少しずつ永遠にスピードアップ
-
-  // 時間のフォーマット
-  let totalSeconds = Math.floor(frame / 60);
-  let m = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
-  let s = String(totalSeconds % 60).padStart(2, '0');
-  
-  timeUI.innerText = `TIME: ${m}:${s}`;
-  scoreUI.innerText = `SCORE: ${Math.floor(score)}`;
+  score += 0.2; 
+  gameSpeed = 5.5 + (frame / 500); // じわじわスピードアップ
   
   drawGame();
   reqId = requestAnimationFrame(updateGame);
@@ -298,10 +298,9 @@ function drawGame() {
   ctx.fillStyle = "#898989";
   for(let m of bgElements.mountains) {
     ctx.beginPath(); ctx.moveTo(m.x, m.y); ctx.lineTo(m.x + m.w/2, m.y - m.h); ctx.lineTo(m.x + m.w, m.y); ctx.fill();
-    // 雪冠
     ctx.fillStyle = "#FFF";
     ctx.beginPath(); ctx.moveTo(m.x + m.w/2, m.y - m.h); ctx.lineTo(m.x + m.w/2 + 20, m.y - m.h + 30); ctx.lineTo(m.x + m.w/2 - 20, m.y - m.h + 30); ctx.fill();
-    ctx.fillStyle = "#898989"; // 色を戻す
+    ctx.fillStyle = "#898989"; 
   }
 
   // 雲
@@ -312,16 +311,40 @@ function drawGame() {
 
   // 木
   for(let t of bgElements.trees) {
-    ctx.fillStyle = "#8B5A2B"; ctx.fillRect(t.x - 5, t.y - 20, 10, 20); // 幹
-    ctx.fillStyle = "#55C936"; ctx.beginPath(); ctx.arc(t.x, t.y - 30, 25, 0, Math.PI*2); ctx.fill(); // 葉
+    ctx.fillStyle = "#8B5A2B"; ctx.fillRect(t.x - 5, t.y - 20, 10, 20); 
+    ctx.fillStyle = "#55C936"; ctx.beginPath(); ctx.arc(t.x, t.y - 30, 25, 0, Math.PI*2); ctx.fill(); 
   }
 
-  // 地面 (草と土)
+  // 🌍 地面の描画
   const groundY = canvas.height - 40;
-  ctx.fillStyle = "#55C936"; ctx.fillRect(0, groundY, canvas.width, 10); // 草
-  ctx.fillStyle = "#8B5A2B"; ctx.fillRect(0, groundY + 10, canvas.width, 30); // 土
+  ctx.fillStyle = "#55C936"; ctx.fillRect(0, groundY, canvas.width, 10); 
+  ctx.fillStyle = "#8B5A2B"; ctx.fillRect(0, groundY + 10, canvas.width, 30); 
+
+  // 🕳️ FIAT沼の描画（地面を空の色でくり抜いて、中にFIATを描画）
+  for (let obs of obstacles) {
+    if (obs.type === 'fiat_pit') {
+      ctx.fillStyle = "#5CB8FF"; // 空色で地面を消す
+      ctx.fillRect(obs.x, groundY - 1, obs.w, 42); 
+
+      if (imgFiat.complete && imgFiat.naturalHeight !== 0) {
+        // 沼の中にFIAT画像を敷き詰める
+        let imgSize = 40;
+        ctx.save();
+        ctx.beginPath(); ctx.rect(obs.x, groundY + 5, obs.w, 35); ctx.clip(); 
+        for(let px = obs.x; px < obs.x + obs.w; px += imgSize) {
+          ctx.drawImage(imgFiat, px, groundY + 5, imgSize, imgSize);
+        }
+        ctx.restore();
+      } else {
+        // 画像がない時の代用品
+        ctx.fillStyle = "#8B0000"; ctx.fillRect(obs.x, groundY + 10, obs.w, 30);
+        ctx.fillStyle = "#FFF"; ctx.font = "bold 10px 'Press Start 2P'"; ctx.textAlign="center";
+        ctx.fillText("FIAT", obs.x + obs.w/2, groundY + 30);
+      }
+    }
+  }
   
-  // プレイヤー (ビットコイン君)
+  // 🧑‍🚀 プレイヤー (ビットコイン君)
   ctx.save();
   ctx.translate(player.x, player.y);
   if(player.vy === 0) ctx.rotate(Math.sin(frame * 0.4) * 0.3); 
@@ -336,7 +359,7 @@ function drawGame() {
   ctx.fillStyle = "black"; ctx.beginPath(); ctx.arc(7, -6, 2, 0, Math.PI*2); ctx.fill();
   ctx.restore();
 
-  // 👿 障害物 (画像の描画)
+  // 👿 ヴィランの描画
   for (let obs of obstacles) {
     let img;
     if (obs.type === 'gox' && imgGox.complete && imgGox.naturalHeight !== 0) img = imgGox;
@@ -345,8 +368,7 @@ function drawGame() {
 
     if (img) {
       ctx.drawImage(img, obs.x, obs.y, obs.w, obs.h);
-    } else {
-      // 画像が読み込めない場合の代わりの四角形
+    } else if (obs.type !== 'fiat_pit') {
       ctx.fillStyle = "#E94560"; ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
       ctx.fillStyle = "#FFF"; ctx.font = "10px Arial"; ctx.textAlign="center"; ctx.fillText(obs.type.toUpperCase(), obs.x + obs.w/2, obs.y + obs.h/2);
     }
@@ -355,7 +377,7 @@ function drawGame() {
   // ⚡️ アイテム (輝くSats)
   for (let item of items) {
     ctx.save();
-    ctx.shadowBlur = 15; ctx.shadowColor = "#FFEA00"; // 光るエフェクト
+    ctx.shadowBlur = 15; ctx.shadowColor = "#FFEA00"; 
     ctx.beginPath(); ctx.arc(item.x, item.y, item.r, 0, Math.PI*2);
     ctx.fillStyle = "#FFC300"; ctx.fill();
     ctx.lineWidth = 2; ctx.strokeStyle = "#FFFFFF"; ctx.stroke();
@@ -365,14 +387,33 @@ function drawGame() {
     ctx.fillText("⚡", item.x, item.y + 1);
     ctx.restore();
   }
+
+  // ⏱️ Canvas内へのスコアと時間の描画
+  let totalSeconds = Math.floor(frame / 60);
+  let m = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+  let s = String(totalSeconds % 60).padStart(2, '0');
+
+  ctx.fillStyle = "#FFF";
+  ctx.font = "14px 'Press Start 2P', cursive";
+  ctx.shadowBlur = 4; ctx.shadowColor = "#000";
+  
+  ctx.textAlign = "left"; ctx.textBaseline = "top";
+  ctx.fillText(`TIME: ${m}:${s}`, 15, 15);
+  
+  ctx.textAlign = "right";
+  ctx.fillText(`SCORE: ${Math.floor(score)}`, canvas.width - 15, 15);
+  ctx.shadowBlur = 0;
 }
 
 function gameOver() {
   isGameOver = true;
   canvas.style.display = 'none';
-  hud.style.display = 'none';
   
-  document.getElementById('final-time').innerText = timeUI.innerText.replace('TIME: ', '');
+  let totalSeconds = Math.floor(frame / 60);
+  let m = String(Math.floor(totalSeconds / 60)).padStart(2, '0');
+  let s = String(totalSeconds % 60).padStart(2, '0');
+
+  document.getElementById('final-time').innerText = `${m}:${s}`;
   document.getElementById('final-score').innerText = Math.floor(score);
   document.getElementById('panel-result').style.display = 'block';
 }

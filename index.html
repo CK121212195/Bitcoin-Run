@@ -33,7 +33,7 @@
     }
 
     .title { font-family: 'Press Start 2P', cursive; font-size: 1.5rem; color: var(--primary); margin-bottom: 15px; line-height: 1.4; text-shadow: 2px 2px 0px #000; }
-    .desc { font-size: 0.9rem; margin-bottom: 25px; line-height: 1.6; color: #ddd; }
+    .desc { font-size: 0.85rem; margin-bottom: 25px; line-height: 1.8; color: #ddd; font-weight: bold;}
     
     .btn {
       background: var(--primary); color: #000; border: none; padding: 15px 20px; width: 100%;
@@ -42,7 +42,6 @@
     }
     .btn:active { transform: translateY(4px); box-shadow: none; }
     .btn-secondary { background: #0f3460; color: #fff; box-shadow: 0 4px 0 #0a2442; }
-    /* テスト用無料ボタン */
     .btn-free { background: #00FF88; color: #000; box-shadow: 0 4px 0 #009955; }
 
     /* --- ゲームキャンバス --- */
@@ -70,25 +69,18 @@
     <!-- 1. トップ画面 -->
     <div class="panel" id="panel-start">
       <div class="title">BITCOIN<br>RUN 🏃‍♂️</div>
-      <div class="desc" data-i18n="desc">Fiat(法定通貨)を飛び越えろ！<br>ハイスコアを目指せ！</div>
-      
-      <!-- テスト用に決済をスキップして直接ゲームを開始するボタン -->
+      <div class="desc" data-i18n="desc">3段ジャンプでFiat、FUDの崖、トランプ山を飛び越えろ！<br>ハイスコアを目指せ！</div>
       <button class="btn btn-free" onclick="startGame()"><span data-i18n="btn_play_free">PLAY FREE (TEST)</span></button>
-      
-      <!-- 本番用のボタンは一旦コメントアウト（または非表示）にしておきます -->
-      <!-- <button class="btn" onclick="generateInvoice()"><span data-i18n="btn_play">PLAY (10 SATS)</span></button> -->
     </div>
 
-    <!-- 3. ゲーム画面 -->
+    <!-- 2. ゲーム画面 -->
     <canvas id="gameCanvas"></canvas>
 
-    <!-- 4. 結果画面 -->
+    <!-- 3. 結果画面 -->
     <div class="panel" id="panel-result" style="display:none;">
       <div class="title" style="color:var(--text);" data-i18n="gameover">GAME OVER</div>
       <div class="title" style="font-size:1.8rem; margin: 20px 0;" id="final-score">0</div>
       <button class="btn btn-secondary" onclick="shareTwitter()"><span data-i18n="btn_share">🐦 SHARE TO X</span></button>
-      
-      <!-- テスト用に無料リトライボタン -->
       <button class="btn btn-free" onclick="startGame()"><span data-i18n="btn_retry_free">RETRY FREE</span></button>
     </div>
 
@@ -98,17 +90,17 @@
 // 多言語辞書
 const i18n = {
   en: {
-    desc: "Jump over the melting Fiat!<br>Aim for the high score!",
+    desc: "Triple Jump over Fiat, FUD cliffs, and Mt. Trump!<br>Aim for the high score!",
     btn_play_free: "PLAY FREE", gameover: "GAME OVER", 
     btn_share: "🐦 SHARE TO X", btn_retry_free: "RETRY FREE"
   },
   ja: {
-    desc: "Fiat（法定通貨）を飛び越えろ！<br>ハイスコアを目指せ！",
+    desc: "3段ジャンプでFiat、FUDの崖、トランプ山を飛び越えろ！<br>ハイスコアを目指せ！",
     btn_play_free: "無料でプレイ", gameover: "ゲームオーバー", 
     btn_share: "🐦 𝕏でシェア", btn_retry_free: "もう一度プレイ"
   },
   ko: {
-    desc: "법정화폐(Fiat)를 뛰어넘으세요!<br>최고 점수에 도전하세요!",
+    desc: "3단 점프로 법정화폐, FUD 절벽, 트럼프 산을 뛰어넘으세요!<br>최고 점수에 도전하세요!",
     btn_play_free: "무료로 플레이", gameover: "게임 오버", 
     btn_share: "🐦 𝕏에 공유하기", btn_retry_free: "다시 플레이"
   }
@@ -123,7 +115,7 @@ function changeLang(lang) {
 }
 
 function shareTwitter() {
-  const text = `I scored ${Math.floor(score)} points in BITCOIN RUN! 🏃‍♂️⚡️\nJump over the Fiat and stack Sats!\n#Bitcoin #LightningNetwork`;
+  const text = `I scored ${Math.floor(score)} points in BITCOIN RUN! 🏃‍♂️⚡️\nJump over the FUD and stack Sats!\n#Bitcoin #LightningNetwork`;
   window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
 }
 
@@ -144,14 +136,13 @@ resizeCanvas();
 let player, obstacles, items, gameSpeed, score, frame, isGameOver, reqId;
 
 function startGame() {
-  // パネルを非表示にしてCanvasを表示
   document.getElementById('panel-start').style.display = 'none';
   document.getElementById('panel-result').style.display = 'none';
   canvas.style.display = 'block';
   scoreUI.style.display = 'block';
   
-  // ゲームの初期化
-  player = { x: 50, y: 100, r: 16, vy: 0, gravity: 0.6, jump: -10 };
+  // 初期化 (jumpCountで3段ジャンプを管理)
+  player = { x: 50, y: 100, r: 16, vy: 0, gravity: 0.6, jump: -9, jumpCount: 0, maxJumps: 3 };
   obstacles = [];
   items =[];
   gameSpeed = 5;
@@ -163,13 +154,13 @@ function startGame() {
   updateGame();
 }
 
-// ジャンプ操作（画面タップ / クリック / スペースキー）
+// ⚡️ 3段ジャンプのロジック
 function jump() {
   if (isGameOver) return;
-  const groundY = canvas.height - 25;
-  // 地面にいる時だけジャンプ可能（rは半径。少しの誤差を許容）
-  if (player.y + player.r >= groundY - 1) {
+  // ジャンプ回数が3回未満なら何度でも飛べる
+  if (player.jumpCount < player.maxJumps) {
     player.vy = player.jump;
+    player.jumpCount++;
   }
 }
 window.addEventListener('keydown', (e) => { if(e.code === 'Space') jump(); });
@@ -183,35 +174,67 @@ function updateGame() {
   player.vy += player.gravity;
   player.y += player.vy;
   const groundY = canvas.height - 25;
-  if (player.y + player.r >= groundY) {
-    player.y = groundY - player.r;
-    player.vy = 0;
+
+  // 崖（FUD）の上にいるかどうかの判定
+  let isOverFud = false;
+  for (let obs of obstacles) {
+    // プレイヤーが穴（崖）の範囲内にいるか
+    if (obs.type === 'fud' && player.x > obs.x + 8 && player.x < obs.x + obs.w - 8) {
+      isOverFud = true;
+    }
   }
 
-  // 2. 障害物(Fiat)とアイテム(Sats)の生成
+  // 地面の判定（穴の上にいない時だけ着地できる）
+  if (!isOverFud && player.y + player.r >= groundY) {
+    player.y = groundY - player.r;
+    player.vy = 0;
+    player.jumpCount = 0; // 地面に着いたらジャンプ回数をリセット
+  }
+
+  // 画面の下に落ちてしまったらゲームオーバー
+  if (player.y - player.r > canvas.height) {
+    gameOver();
+    return;
+  }
+
+  // 2. 障害物とアイテムの生成
   frame++;
-  // スピードが上がるにつれて生成間隔を短くする
   let spawnRate = Math.max(50, 100 - Math.floor(gameSpeed * 5));
   
   if (frame % spawnRate === 0) {
-    // 障害物 (大きさランダム)
-    let w = 25 + Math.random() * 15;
-    let h = 30 + Math.random() * 25;
-    obstacles.push({ x: canvas.width, y: groundY - h, w: w, h: h });
+    let r = Math.random();
+    if (r < 0.5) {
+      // 法定通貨 (Fiat)
+      let w = 25 + Math.random() * 15;
+      let h = 30 + Math.random() * 25;
+      obstacles.push({ type: 'fiat', x: canvas.width, y: groundY - h, w: w, h: h });
+    } else if (r < 0.75) {
+      // 崖 (FUD)
+      let w = 80 + Math.random() * 50; 
+      obstacles.push({ type: 'fud', x: canvas.width, y: groundY, w: w, h: 25 });
+    } else {
+      // トランプ山 (Trump)
+      let w = 60, h = 80;
+      obstacles.push({ type: 'trump', x: canvas.width, y: groundY - h, w: w, h: h });
+    }
   }
 
-  if (frame % 120 === 0 && Math.random() > 0.4) {
-    // アイテム（ジャンプで取れる高さ）
-    items.push({ x: canvas.width, y: groundY - 80 - Math.random() * 60, r: 12 });
+  if (frame % 100 === 0 && Math.random() > 0.3) {
+    // 高めの位置にもアイテムが出るように
+    items.push({ x: canvas.width, y: groundY - 60 - Math.random() * 90, r: 12 });
   }
 
   // 3. 当たり判定と移動
   for (let i = 0; i < obstacles.length; i++) {
     let obs = obstacles[i];
     obs.x -= gameSpeed;
-    if (circleRectCollide(player, obs)) {
-      gameOver();
-      return;
+    
+    if (obs.type === 'fiat') {
+      if (circleRectCollide(player, obs)) { gameOver(); return; }
+    } else if (obs.type === 'trump') {
+      // 山は三角形なので、当たり判定を少し甘めに調整
+      let hitbox = { x: obs.x + 15, y: obs.y + 30, w: obs.w - 30, h: obs.h - 30 };
+      if (circleRectCollide(player, hitbox)) { gameOver(); return; }
     }
   }
 
@@ -220,7 +243,7 @@ function updateGame() {
     item.x -= gameSpeed;
     let dx = player.x - item.x;
     let dy = player.y - item.y;
-    if (Math.sqrt(dx*dx + dy*dy) < player.r + item.r) {
+    if (Math.sqrt(dx*dx + dy*dy) < player.r + item.r + 5) {
       score += 50; // ボーナススコア
       items.splice(i, 1);
       i--;
@@ -233,7 +256,7 @@ function updateGame() {
 
   // スコア加算と難易度上昇
   score += 0.1;
-  if (Math.floor(score) % 100 === 0) gameSpeed += 0.2; // 徐々にスピードアップ
+  if (Math.floor(score) % 100 === 0) gameSpeed += 0.15; // スピードアップ
 
   scoreUI.innerText = `SCORE: ${Math.floor(score)}`;
   drawGame();
@@ -259,18 +282,31 @@ function drawGame() {
   ctx.fillStyle = "#111";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  // 地面
+  // 🌍 地面の描画
   ctx.fillStyle = "#16213E";
   ctx.fillRect(0, canvas.height - 25, canvas.width, 25);
-  ctx.strokeStyle = "#F7931A";
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = "#F7931A"; ctx.lineWidth = 2;
   ctx.beginPath(); ctx.moveTo(0, canvas.height - 25); ctx.lineTo(canvas.width, canvas.height - 25); ctx.stroke();
 
-  // プレイヤー (ビットコイン君)
+  // 🕳️ FUD（崖）の描画（地面をくり抜く）
+  for (let obs of obstacles) {
+    if (obs.type === 'fud') {
+      ctx.fillStyle = "#111"; // 背景色でくり抜き
+      ctx.fillRect(obs.x, obs.y - 2, obs.w, obs.h + 5); 
+      
+      // 沼とテキスト
+      ctx.fillStyle = "#4A00E0"; 
+      ctx.fillRect(obs.x, obs.y + 10, obs.w, obs.h - 10);
+      ctx.fillStyle = "#FFF"; ctx.font = "bold 10px 'Press Start 2P', cursive"; ctx.textAlign="center";
+      ctx.fillText("FUD", obs.x + obs.w/2, obs.y + 20);
+    }
+  }
+
+  // 🧑‍🚀 プレイヤー (ビットコイン君)
   ctx.save();
   ctx.translate(player.x, player.y);
-  // ジャンプ中は回転を止め、走っている時は少し回転させる
-  if(player.vy === 0) ctx.rotate(Math.sin(frame * 0.3) * 0.2); 
+  // 空中（ジャンプ中）は回転を止め、走っている時は回る
+  if(player.vy === 0) ctx.rotate(Math.sin(frame * 0.4) * 0.3); 
   
   ctx.beginPath(); ctx.arc(0, 0, player.r, 0, Math.PI*2);
   ctx.fillStyle = "#F7931A"; ctx.fill();
@@ -284,23 +320,61 @@ function drawGame() {
   ctx.fillStyle = "black"; ctx.beginPath(); ctx.arc(7, -6, 2, 0, Math.PI*2); ctx.fill();
   ctx.restore();
 
-  // 障害物 (Fiat / 紙幣)
+  // 🚧 障害物の描画 (Fiat / Trump)
   for (let obs of obstacles) {
-    ctx.fillStyle = "#E94560";
-    ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
-    // 模様
-    ctx.fillStyle = "rgba(0,0,0,0.3)";
-    ctx.fillRect(obs.x + 5, obs.y + 5, obs.w - 10, obs.h - 10);
-    ctx.fillStyle = "#fff"; ctx.font = "14px Arial"; ctx.textAlign="center";
-    ctx.fillText("$", obs.x + obs.w/2, obs.y + obs.h/2 + 5);
+    if (obs.type === 'fiat') {
+      ctx.fillStyle = "#E94560";
+      ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
+      ctx.fillStyle = "rgba(0,0,0,0.3)";
+      ctx.fillRect(obs.x + 5, obs.y + 5, obs.w - 10, obs.h - 10);
+      ctx.fillStyle = "#fff"; ctx.font = "14px Arial"; ctx.textAlign="center";
+      ctx.fillText("$", obs.x + obs.w/2, obs.y + obs.h/2 + 5);
+      
+    } else if (obs.type === 'trump') {
+      // 山のベース
+      ctx.fillStyle = "#D2691E"; 
+      ctx.beginPath();
+      ctx.moveTo(obs.x + obs.w/2, obs.y);
+      ctx.lineTo(obs.x + obs.w, obs.y + obs.h);
+      ctx.lineTo(obs.x, obs.y + obs.h);
+      ctx.closePath(); ctx.fill();
+      
+      // 金髪の雪冠
+      ctx.fillStyle = "#FFD700";
+      ctx.beginPath();
+      ctx.moveTo(obs.x + obs.w/2, obs.y);
+      ctx.lineTo(obs.x + obs.w/2 + 15, obs.y + 25);
+      ctx.lineTo(obs.x + obs.w/2 + 5, obs.y + 30);
+      ctx.lineTo(obs.x + obs.w/2 - 15, obs.y + 15);
+      ctx.closePath(); ctx.fill();
+      
+      // 顔(オレンジ色)
+      ctx.fillStyle = "#FF8C00"; 
+      ctx.beginPath();
+      ctx.arc(obs.x + obs.w/2, obs.y + 35, 10, 0, Math.PI*2);
+      ctx.fill();
+
+      // TRUMP テキスト
+      ctx.fillStyle = "#FFF"; ctx.font = "bold 8px 'Press Start 2P', cursive"; ctx.textAlign="center";
+      ctx.fillText("TRUMP", obs.x + obs.w/2, obs.y + obs.h - 5);
+    }
   }
 
-  // アイテム (Sats / 雷)
+  // ⚡️ アイテム (輝くSats)
   for (let item of items) {
-    ctx.beginPath(); ctx.arc(item.x, item.y, item.r, 0, Math.PI*2);
-    ctx.fillStyle = "#F7A800"; ctx.fill();
-    ctx.fillStyle = "#fff"; ctx.font = "12px Arial"; ctx.textAlign="center";
-    ctx.fillText("⚡", item.x, item.y + 4);
+    ctx.save();
+    // 光るエフェクト
+    ctx.shadowBlur = 12;
+    ctx.shadowColor = "#FFEA00";
+    
+    ctx.beginPath(); ctx.arc(item.x, item.y, item.r + 3, 0, Math.PI*2);
+    ctx.fillStyle = "#FFC300"; ctx.fill();
+    ctx.lineWidth = 2; ctx.strokeStyle = "#FFFFFF"; ctx.stroke();
+    
+    ctx.shadowBlur = 0; // テキストにはシャドウをかけない
+    ctx.fillStyle = "#000"; ctx.font = "bold 16px Arial"; ctx.textAlign="center"; ctx.textBaseline="middle";
+    ctx.fillText("⚡", item.x, item.y + 1);
+    ctx.restore();
   }
 }
 

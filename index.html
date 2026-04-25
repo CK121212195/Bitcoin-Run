@@ -305,11 +305,24 @@ function closeLeaderboard() {
 function shareTwitter() {
   const timeStr = document.getElementById('final-time').innerText;
   const finalScore = Math.floor(score);
-  let text = i18n[currentLang].share_text.replace('{time}', timeStr).replace('{score}', finalScore);
-  const randomGif = shareGifs[Math.floor(Math.random() * shareGifs.length)];
+  
+  // 🚨 修正1: 世界中へアピールするため、英語・日本語・韓国語をミックス！
+  // ハッシュタグも各言語のものを盛り込みました。
+  const text = `🏃‍♂️ BITCOIN RUN ⚡️
+Score: ${finalScore} / Time: ${timeStr}
+
+Dodge FED, SCAM & CBDC! 🇺🇸
+避けろFIAT！掴めSats！ 🇯🇵
+은행과 스캠을 피하세요! 🇰🇷
+
+Can you beat my score? 👇
+#Bitcoin #ビットコイン #비트코인 #LightningNetwork`;
+
   const appUrl = window.location.href.split('?')[0]; 
-  const tweetContent = text + "\n\n" + randomGif;
-  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetContent)}&url=${encodeURIComponent(appUrl)}`, '_blank');
+  
+  // 🚨 修正2: GIFの追加(randomGif)を削除し、ゲームのURLのみにする。
+  // これにより、Twitter側で確実に「OGP画像（大きなサムネイル）」が展開されます。
+  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(appUrl)}`, '_blank');
 }
 
 // ----------------------------------------------------

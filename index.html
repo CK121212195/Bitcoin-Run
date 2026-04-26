@@ -71,11 +71,12 @@
     .qr-img { width: 160px; height: 160px; border: 4px solid #fff; border-radius: 8px; margin: 5px auto; display: block; }
     .inv-text { width: 100%; padding: 8px; background: #000; color: #00FF88; border: 1px solid #333; border-radius: 5px; font-family: monospace; font-size: 10px; margin-bottom: 10px; word-break: break-all; resize: none; }
 
+    /* 🚨 画面端が絶対に見切れないように object-fit: contain に修正 */
     canvas {
       display: none; position: absolute; z-index: 1;
       width: 100%; height: 100%; 
       max-width: 100vw; max-height: 100vh;
-      object-fit: cover; background: #88c0f0; /* マリオ風の空色 */
+      object-fit: contain; background: #000; 
     }
   </style>
 </head>
@@ -304,12 +305,16 @@ function shareTwitter() {
 // ----------------------------------------------------
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-canvas.width = 1000; canvas.height = 562; 
-const groundY = 460; 
+
+// 🚨 キャンバスのサイズ拡張（ステータスバー用の黒帯を下部に追加）
+canvas.width = 1000; 
+canvas.height = 620; // 元の500 + 下部UI用120
+const gameHeight = 500; // ゲーム画面領域の高さ
+const groundY = 460;    // 地面の位置
 
 let player, obstacles, items, bgElements, gameSpeed, score, frame, isGameOver, reqId;
+let itemCount = 0; // 取得したアイテム(コイン)の数
 
-// マリオ風背景色パレット
 const blockColors =["#a8e0b0", "#f8d8a0", "#a8d8f8"]; // 薄緑, ペールオレンジ, 水色
 
 function startGame() {
@@ -321,10 +326,8 @@ function startGame() {
   player = { x: 100, y: groundY - 20, r: 18, vy: 0, gravity: 0.55, jump: -9.5, jumpCount: 0, maxJumps: 5 };
   obstacles =[]; items =[];
   
-  // 🚨 背景レイヤー（クラシックなドット絵風）
   bgElements = { blocks:[], bushes:[] };
   
-  // 遠景の四角いブロック
   for(let i=0; i<6; i++) {
     bgElements.blocks.push({
       x: i * 220 + Math.random()*100,
@@ -333,7 +336,6 @@ function startGame() {
       c: blockColors[i % 3]
     });
   }
-  // 手前の茂み（メロンみたいな模様）
   for(let i=0; i<8; i++) {
     bgElements.bushes.push({
       x: i * 160 + Math.random()*80,
@@ -343,6 +345,7 @@ function startGame() {
 
   gameSpeed = 3.8; 
   score = 0; frame = 0; isGameOver = false;
+  itemCount = 0;
 
   if(reqId) cancelAnimationFrame(reqId);
   updateGame();
@@ -379,7 +382,9 @@ function updateGame() {
   if (!isOverPit && player.y + player.r >= groundY) {
     player.y = groundY - player.r; player.vy = 0; player.jumpCount = 0; 
   }
-  if (player.y - player.r > canvas.height) { gameOver(); return; }
+  
+  // 🚨 画面外落下判定 (ゲーム画面の底である gameHeight を基準にする)
+  if (player.y - player.r > gameHeight) { gameOver(); return; }
 
   frame++;
   let spawnRate = Math.max(60, 150 - Math.floor(gameSpeed * 10)); 
@@ -420,7 +425,6 @@ function updateGame() {
   // 110フレームごとにアイテム (はてなブロック風) を配置
   if (frame % 110 === 0) items.push({ x: canvas.width, y: groundY - 100 - Math.random() * 180, r: 16 });
 
-  // 背景の多重スクロール（レトロ風）
   bgElements.blocks.forEach(b => { 
     b.x -= gameSpeed * 0.15; 
     if(b.x + b.w < -50) { b.x = canvas.width + Math.random()*100; b.c = blockColors[Math.floor(Math.random()*3)]; } 
@@ -498,10 +502,9 @@ function updateGame() {
   // アイテム判定（はてなブロック）
   for (let i = 0; i < items.length; i++) {
     let item = items[i]; item.x -= gameSpeed;
-    // 四角いブロックとしての当たり判定 (中心からの距離でざっくり計算)
     let dx = player.x - item.x; let dy = player.y - item.y;
     if (Math.abs(dx) < player.r + item.r && Math.abs(dy) < player.r + item.r) { 
-      score += 50; items.splice(i, 1); i--; 
+      score += 50; itemCount++; items.splice(i, 1); i--; 
     }
   }
 
@@ -522,13 +525,13 @@ function circleRectCollide(circle, rect) {
 }
 
 function drawGame() {
-  // 🚨 1. 空の描画 (マリオ風の明るい水色グラデーション)
-  let gSky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  // 1. 空の描画
+  let gSky = ctx.createLinearGradient(0, 0, 0, gameHeight);
   gSky.addColorStop(0, "#74b4ff");
   gSky.addColorStop(1, "#cce8f4");
-  ctx.fillStyle = gSky; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = gSky; ctx.fillRect(0, 0, canvas.width, gameHeight);
 
-  // 🚨 2. 波打つ雲のレイヤー (画面上部に連なるモコモコ)
+  // 2. 波打つ雲
   let cloudOffset = -(frame * 0.1) % 64;
   ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
   for(let i = cloudOffset - 64; i < canvas.width; i += 64) {
@@ -537,17 +540,15 @@ function drawGame() {
     ctx.fill();
   }
 
-  // 🚨 3. 遠景のブロック (パステルカラーの四角)
+  // 3. 遠景のブロック
   for(let b of bgElements.blocks) {
     ctx.fillStyle = b.c;
     ctx.fillRect(b.x, groundY - b.h, b.w, b.h);
     ctx.lineWidth = 2; ctx.strokeStyle = "#000";
     ctx.strokeRect(b.x, groundY - b.h, b.w, b.h);
-    // ハイライト
     ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
     ctx.fillRect(b.x + 2, groundY - b.h + 2, b.w - 4, 4);
     ctx.fillRect(b.x + 2, groundY - b.h + 2, 4, b.h - 4);
-    // ドット
     ctx.fillStyle = "#000";
     ctx.fillRect(b.x + 6, groundY - b.h + 6, 2, 2);
     ctx.fillRect(b.x + b.w - 8, groundY - b.h + 6, 2, 2);
@@ -555,14 +556,13 @@ function drawGame() {
     ctx.fillRect(b.x + b.w - 8, groundY - 8, 2, 2);
   }
 
-  // 🚨 4. 手前の茂み (しましま模様の丸いやつ)
+  // 4. 手前の茂み
   for(let b of bgElements.bushes) {
     ctx.save();
     ctx.translate(b.x, groundY);
     ctx.beginPath(); ctx.arc(0, 0, b.r, Math.PI, 0); ctx.closePath();
     ctx.fillStyle = "#48c848"; ctx.fill();
     ctx.lineWidth = 2; ctx.strokeStyle = "#000"; ctx.stroke();
-    // ストライプ模様
     ctx.clip(); 
     ctx.strokeStyle = "#289028"; ctx.lineWidth = 4;
     for(let i = -b.r; i < b.r; i += 12) {
@@ -571,49 +571,48 @@ function drawGame() {
     ctx.restore();
   }
 
-  // 🚨 5. 地面の描画 (木目調ストライプ + 黒枠)
+  // 5. 地面の描画
   ctx.fillStyle = "#c87830";
-  ctx.fillRect(0, groundY, canvas.width, canvas.height - groundY);
+  ctx.fillRect(0, groundY, canvas.width, gameHeight - groundY);
   ctx.lineWidth = 2; ctx.strokeStyle = "#a05018";
   let groundOffset = -(frame * gameSpeed) % 20;
   for(let i = groundOffset - 20; i < canvas.width; i += 20) {
-      ctx.beginPath(); ctx.moveTo(i, groundY); ctx.lineTo(i + (canvas.height - groundY), canvas.height); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(i, groundY); ctx.lineTo(i + (gameHeight - groundY), gameHeight); ctx.stroke();
   }
-  // 上部の枠
   ctx.fillStyle = "#fcb878"; ctx.fillRect(0, groundY, canvas.width, 12);
   ctx.strokeStyle = "#000"; ctx.lineWidth = 2;
   ctx.strokeRect(0, groundY, canvas.width, 12);
   ctx.beginPath(); ctx.moveTo(0, groundY); ctx.lineTo(canvas.width, groundY); ctx.stroke();
 
-  // 🚨 6. FIATの穴 (黒くて四角いレトロ感)
+  // 6. FIATの穴
   for (let obs of obstacles) {
     if (obs.type === 'fiat_pit') {
-      ctx.fillStyle = "#000"; // 真っ暗な穴
-      ctx.fillRect(obs.x, groundY, obs.w, canvas.height - groundY);
-      // 穴の境界を強調
+      ctx.fillStyle = "#000"; 
+      ctx.fillRect(obs.x, groundY, obs.w, gameHeight - groundY);
       ctx.fillStyle = "#fcb878";
-      ctx.fillRect(obs.x, groundY, 4, canvas.height - groundY);
-      ctx.fillRect(obs.x + obs.w - 4, groundY, 4, canvas.height - groundY);
+      ctx.fillRect(obs.x, groundY, 4, gameHeight - groundY);
+      ctx.fillRect(obs.x + obs.w - 4, groundY, 4, gameHeight - groundY);
       ctx.lineWidth = 2; ctx.strokeStyle = "#000";
-      ctx.strokeRect(obs.x, groundY, 4, canvas.height - groundY);
-      ctx.strokeRect(obs.x + obs.w - 4, groundY, 4, canvas.height - groundY);
+      ctx.strokeRect(obs.x, groundY, 4, gameHeight - groundY);
+      ctx.strokeRect(obs.x + obs.w - 4, groundY, 4, gameHeight - groundY);
       
-      ctx.fillStyle = "rgba(255,50,50,0.8)"; ctx.font = "bold 16px 'Press Start 2P', monospace"; ctx.textAlign="center"; 
-      ctx.fillText("FIAT", obs.x + obs.w/2, groundY + 45);
+      ctx.fillStyle = "rgba(255,50,50,0.8)"; ctx.font = "bold 16px 'Press Start 2P', monospace"; 
+      ctx.textAlign="center"; ctx.textBaseline="middle";
+      ctx.fillText("FIAT", obs.x + obs.w/2, groundY + (gameHeight - groundY)/2);
     }
   }
   
-  // 🚨 7. プレイヤー描画 (ドット絵風に黒枠を追加)
+  // 7. プレイヤー描画
   ctx.save(); ctx.translate(player.x, player.y);
   if(player.vy === 0) ctx.rotate(Math.sin(frame * 0.4) * 0.3); 
   let gradB = ctx.createRadialGradient(0, 0, player.r * 0.2, 0, 0, player.r);
   gradB.addColorStop(0, "#FFD700"); gradB.addColorStop(1, "#B8860B");
   ctx.beginPath(); ctx.arc(0, 0, player.r, 0, Math.PI*2); ctx.fillStyle = gradB; ctx.fill();
-  ctx.lineWidth = 3; ctx.strokeStyle = "#000"; ctx.stroke(); // 黒枠
+  ctx.lineWidth = 3; ctx.strokeStyle = "#000"; ctx.stroke(); 
   ctx.fillStyle = "#fff"; ctx.font = "bold 20px Arial"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillText("₿", 0, 0);
   ctx.restore();
 
-  // 🚨 8. 敵キャラ描画 (すべて黒枠で統一してレトロ感を出す)
+  // 8. 敵キャラ描画
   for (let obs of obstacles) {
     if (obs.type === 'fiat_pit') continue;
     let cx = obs.x + obs.w/2; let cy = obs.y + obs.h/2;
@@ -666,7 +665,7 @@ function drawGame() {
     }
     else if (obs.type === 'jpy_yen') {
       ctx.fillStyle = "#dcd7b4"; ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
-      ctx.strokeStyle = "#000"; ctx.lineWidth = 3; ctx.strokeRect(obs.x, obs.y, obs.w, obs.h); // ドッスン風黒枠
+      ctx.strokeStyle = "#000"; ctx.lineWidth = 3; ctx.strokeRect(obs.x, obs.y, obs.w, obs.h);
       ctx.fillStyle = "#000";
       ctx.beginPath(); ctx.moveTo(obs.x+15, obs.y+10); ctx.lineTo(obs.x+35, obs.y+18); ctx.lineTo(obs.x+20, obs.y+22); ctx.fill();
       ctx.beginPath(); ctx.moveTo(obs.x+obs.w-15, obs.y+10); ctx.lineTo(obs.x+obs.w-35, obs.y+18); ctx.lineTo(obs.x+obs.w-20, obs.y+22); ctx.fill(); 
@@ -703,41 +702,103 @@ function drawGame() {
     }
   }
 
-  // 🚨 9. アイテム (はてなブロック風デザイン)
+  // 9. アイテム (はてなブロック風)
   for (let item of items) {
     ctx.save(); ctx.translate(item.x, item.y);
-    ctx.fillStyle = "#f8b800"; // オレンジイエロー
+    ctx.fillStyle = "#f8b800"; 
     ctx.fillRect(-item.r, -item.r, item.r*2, item.r*2);
     ctx.lineWidth = 2; ctx.strokeStyle = "#000";
     ctx.strokeRect(-item.r, -item.r, item.r*2, item.r*2);
-    // コーナーのドット
     ctx.fillStyle = "#000";
     ctx.fillRect(-item.r+2, -item.r+2, 2, 2); ctx.fillRect(item.r-4, -item.r+2, 2, 2);
     ctx.fillRect(-item.r+2, item.r-4, 2, 2); ctx.fillRect(item.r-4, item.r-4, 2, 2);
-    // 中央の雷マーク
-    ctx.fillStyle = "#000";
     ctx.beginPath(); ctx.moveTo(2, -6); ctx.lineTo(8, -6); ctx.lineTo(4, 0); ctx.lineTo(8, 0); ctx.lineTo(0, 8); ctx.lineTo(2, 2); ctx.lineTo(-2, 2); ctx.closePath(); ctx.fill();
     ctx.restore();
   }
 
-  // 🚨 10. スコアとタイムの描画 (絶対に消えないように黒フチ取りを追加)
-  ctx.setTransform(1, 0, 0, 1, 0, 0); // 描画座標を確実にリセット
-  let totalSeconds = Math.floor(frame / 60);
-  let m = String(Math.floor(totalSeconds / 60)).padStart(2, '0'); let s = String(totalSeconds % 60).padStart(2, '0');
+  // 🚨 10. スーパーマリオ3風の専用下部ステータスバー
+  const sbY = gameHeight; // 500
+  const sbH = 120;
   
-  ctx.font = "16px 'Press Start 2P', sans-serif";
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  
+  // 黒背景
+  ctx.fillStyle = "#000";
+  ctx.fillRect(0, sbY, canvas.width, sbH);
+  
+  // 白枠 (左側全体)
+  ctx.strokeStyle = "#FFF";
+  ctx.lineWidth = 4;
+  ctx.strokeRect(20, sbY + 15, canvas.width - 240, sbH - 30);
+  
+  // 水色内枠 (左側全体)
+  ctx.strokeStyle = "#5cb8ff";
+  ctx.lineWidth = 2;
+  ctx.strokeRect(24, sbY + 19, canvas.width - 248, sbH - 38);
+
+  // 右側のアイテムボックス 3つ
+  let boxW = 50;
+  let boxH = sbH - 30;
+  let startX = canvas.width - 200;
+  let boxY = sbY + 15;
+
+  for(let i=0; i<3; i++) {
+    let bx = startX + i * 60;
+    ctx.strokeStyle = "#FFF";
+    ctx.lineWidth = 4;
+    ctx.strokeRect(bx, boxY, boxW, boxH);
+    ctx.strokeStyle = "#5cb8ff";
+    ctx.lineWidth = 2;
+    ctx.strokeRect(bx + 4, boxY + 4, boxW - 8, boxH - 8);
+  }
+
+  // テキスト情報の描画
+  ctx.fillStyle = "#FFF";
+  ctx.font = "16px 'Press Start 2P', monospace";
   ctx.textAlign = "left"; ctx.textBaseline = "top";
   
-  // 黒い太枠（アウトライン）
-  ctx.lineWidth = 4; ctx.strokeStyle = "#000"; ctx.lineJoin = "round";
-  ctx.strokeText(`TIME: ${m}:${s}`, 15, 15);
-  ctx.fillStyle = "#FFF"; // 白文字
-  ctx.fillText(`TIME: ${m}:${s}`, 15, 15);
+  // 左上
+  ctx.fillText("WORLD 1", 40, sbY + 35);
+  // 左下
+  ctx.fillStyle = "#FFD700";
+  ctx.fillText("₿", 40, sbY + 70);
+  ctx.fillStyle = "#FFF";
+  ctx.fillText("x 21", 70, sbY + 70);
 
-  ctx.textAlign = "right"; 
-  ctx.strokeText(`SCORE: ${Math.floor(score)}`, canvas.width - 15, 15);
-  ctx.fillStyle = "#FFF"; 
-  ctx.fillText(`SCORE: ${Math.floor(score)}`, canvas.width - 15, 15);
+  // 中央上 (Pメーター風のスピードゲージ)
+  let speedLevel = Math.min(6, Math.floor(frame / 600)); // 時間経過でゲージが伸びる
+  let px = 240;
+  let py = sbY + 35;
+  for(let i=0; i<6; i++) {
+    ctx.fillStyle = (i < speedLevel) ? "#FFF" : "transparent";
+    ctx.strokeStyle = "#FFF";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(px + i*16, py);
+    ctx.lineTo(px + i*16 + 10, py + 7);
+    ctx.lineTo(px + i*16, py + 14);
+    ctx.closePath();
+    if (i < speedLevel) ctx.fill();
+    else ctx.stroke();
+  }
+  ctx.fillStyle = speedLevel === 6 ? "#FFD700" : "#FFF";
+  ctx.fillText("(P)", px + 6*16 + 5, py);
+  
+  // 中央下 (SCORE)
+  ctx.fillStyle = "#FFF";
+  let scoreStr = Math.floor(score).toString().padStart(7, '0');
+  ctx.fillText(scoreStr, 240, sbY + 70);
+
+  // 右上 (COIN / 雷ブロック取得数)
+  ctx.fillStyle = "#FFD700";
+  ctx.fillText("$", 500, sbY + 35);
+  ctx.fillStyle = "#FFF";
+  ctx.fillText(itemCount.toString().padStart(2, '0'), 530, sbY + 35);
+
+  // 右下 (TIME)
+  let totalSeconds = Math.floor(frame / 60);
+  let m = String(Math.floor(totalSeconds / 60)).padStart(2, '0'); let s = String(totalSeconds % 60).padStart(2, '0');
+  ctx.fillText(`TIME ${m}:${s}`, 500, sbY + 70);
 }
 
 function gameOver() {

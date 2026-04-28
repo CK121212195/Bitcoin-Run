@@ -301,6 +301,57 @@ function shareTwitter() {
 }
 
 // ----------------------------------------------------
+// リンククリック判定関数 (右下アイテムボックス用)
+// ----------------------------------------------------
+function checkLinkClick(clientX, clientY) {
+  // メニューが開いているときは無効
+  if (document.getElementById('panel-start').style.display !== 'none' ||
+      document.getElementById('panel-result').style.display !== 'none' ||
+      document.getElementById('panel-leaderboard').style.display !== 'none') {
+    return false;
+  }
+  
+  const rect = canvas.getBoundingClientRect();
+  const scale = Math.min(rect.width / canvas.width, rect.height / canvas.height);
+  const actualWidth = canvas.width * scale;
+  const actualHeight = canvas.height * scale;
+  const offsetX = rect.left + (rect.width - actualWidth) / 2;
+  const offsetY = rect.top + (rect.height - actualHeight) / 2;
+
+  const mouseX = (clientX - offsetX) / scale;
+  const mouseY = (clientY - offsetY) / scale;
+
+  // boxY = 515, boxH = 90
+  if (mouseY >= 515 && mouseY <= 605) {
+    if (mouseX >= 800 && mouseX <= 850) {
+      window.open('https://ck121212195.github.io/Plinko-Bitcoin/', '_blank');
+      return true;
+    } else if (mouseX >= 860 && mouseX <= 910) {
+      window.open('https://ck121212195.github.io/LNbits_slot2/', '_blank');
+      return true;
+    } else if (mouseX >= 920 && mouseX <= 970) {
+      window.open('https://ck121212195.github.io/omikuji_japan_only/', '_blank');
+      return true;
+    }
+  }
+  return false;
+}
+
+window.addEventListener('touchstart', (e) => {
+  if (e.target.closest('.panel') || e.target.tagName === 'SELECT') return; 
+  if (checkLinkClick(e.touches[0].clientX, e.touches[0].clientY)) return;
+  e.preventDefault(); jump();
+}, {passive: false});
+
+window.addEventListener('mousedown', (e) => {
+  if (e.target.closest('.panel') || e.target.tagName === 'SELECT') return;
+  if (checkLinkClick(e.clientX, e.clientY)) return;
+  jump();
+});
+
+window.addEventListener('keydown', (e) => { if(e.code === 'Space') jump(); });
+
+// ----------------------------------------------------
 // ゲームエンジン (Canvas 2D)
 // ----------------------------------------------------
 const canvas = document.getElementById('gameCanvas');
@@ -357,16 +408,6 @@ function jump() {
     player.vy = player.jump; player.jumpCount++;
   }
 }
-
-window.addEventListener('touchstart', (e) => {
-  if (e.target.closest('.panel') || e.target.tagName === 'SELECT') return; 
-  e.preventDefault(); jump();
-}, {passive: false});
-window.addEventListener('mousedown', (e) => {
-  if (e.target.closest('.panel') || e.target.tagName === 'SELECT') return;
-  jump();
-});
-window.addEventListener('keydown', (e) => { if(e.code === 'Space') jump(); });
 
 function updateGame() {
   if (isGameOver) return;
@@ -736,11 +777,17 @@ function drawGame() {
   ctx.lineWidth = 2;
   ctx.strokeRect(24, sbY + 19, canvas.width - 248, sbH - 38);
 
-  // 右側のアイテムボックス 3つ
+  // 右側のアイテムボックス 3つ（他ゲームへのリンク）
   let boxW = 50;
   let boxH = sbH - 30;
   let startX = canvas.width - 200;
   let boxY = sbY + 15;
+
+  const linkApps =[
+    { icon: "⚡", label: "PLINKO" },
+    { icon: "🎰", label: "SLOT" },
+    { icon: "⛩️", label: "OMIKUJI" }
+  ];
 
   for(let i=0; i<3; i++) {
     let bx = startX + i * 60;
@@ -750,6 +797,17 @@ function drawGame() {
     ctx.strokeStyle = "#5cb8ff";
     ctx.lineWidth = 2;
     ctx.strokeRect(bx + 4, boxY + 4, boxW - 8, boxH - 8);
+
+    // アイコン描画
+    ctx.fillStyle = "#FFF";
+    ctx.font = "22px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(linkApps[i].icon, bx + boxW/2, boxY + boxH/2 - 10);
+    
+    // テキスト描画
+    ctx.font = "6px 'Press Start 2P', monospace";
+    ctx.fillText(linkApps[i].label, bx + boxW/2, boxY + boxH/2 + 20);
   }
 
   // テキスト情報の描画
